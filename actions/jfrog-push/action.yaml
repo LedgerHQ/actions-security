@@ -1,15 +1,13 @@
-name: "[Ledger Security] Push to JFrog"
-description: "Ledger Security Action wrapper to push to JFrog"
-
-inputs:
-  artefact-path:
-    description: "path to the artefact to push to JFrog"
-    required: true
-    default: "./"
-
+name: "[Ledger Security] Login to JFrog"
+description: "Ledger Security Action wrapper to login to JFrog"
 
 runs:
   using: "composite"
   steps:
-    - shell: bash
-      run: echo "test 2"
+    - uses: jfrog/setup-jfrog-cli@v4
+      id: setup-jfrog-cli
+      env:
+        JF_URL: "https://artifactory.ledgerlabs.net"
+      with:
+        oidc-provider-name: github
+        oidc-audience: artifactory
