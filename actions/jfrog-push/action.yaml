@@ -11,4 +11,5 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: echo "test"
+    - shell: bash
+      run: echo "test"
