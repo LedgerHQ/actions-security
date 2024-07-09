@@ -1,0 +1,15 @@
+name: "[Ledger Security] Attest an artefact"
+description: "Ledger Security Action wrapper to attest an artefact"
+
+inputs:
+  subject-path:
+    description: "path to the artefact to attest"
+    required: false
+    default: "./"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: ${{ inputs.subject-path }}
