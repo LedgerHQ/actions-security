@@ -1,0 +1,14 @@
+name: "[Ledger Security] Push to JFrog"
+description: "Ledger Security Action wrapper to push to JFrog"
+
+inputs:
+  artefact-path:
+    description: "path to the artefact to push to JFrog"
+    required: true
+    default: "./"
+
+
+runs:
+  using: "composite"
+  steps:
+    - run: echo "test"

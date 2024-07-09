@@ -4,7 +4,7 @@ description: "Ledger Security Action wrapper to attest an artefact"
 inputs:
   subject-path:
     description: "path to the artefact to attest"
-    required: false
+    required: true
     default: "./"
 
 runs:
