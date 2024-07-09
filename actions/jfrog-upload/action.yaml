@@ -1,0 +1,26 @@
+name: "[Ledger Security] Upload to JFrog Artifactory"
+description: "Ledger Security Action wrapper to login to JFrog"
+
+inputs:
+  path:
+    description: "path to the file to upload"
+    required: true
+    default: "./"
+  artifactory_repository:
+    description: "name of artifactory_repository to upload to"
+    required: true
+    default: "./"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: jfrog/setup-jfrog-cli@v4
+      id: setup-jfrog-cli
+      env:
+        JF_URL: "https://artifactory.ledgerlabs.net"
+      with:
+        oidc-provider-name: github
+        oidc-audience: artifactory
+    - run: |
+        jfrog rt u ${{ inputs.path }} ${{ inputs.artifactory_repository}}
+      shell: bash
