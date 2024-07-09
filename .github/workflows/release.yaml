@@ -47,7 +47,7 @@ jobs:
       matrix: ${{fromJson(needs.changelist.outputs.changed_actions)}}
     steps:
       - name: my-app-install token
-        id: ghapp-recover-infra-ci
+        id: ghapp-cybersecurity-ci
         uses: getsentry/action-github-app-token@v3
         with:
           app_id: ${{ secrets.CYBERSECURITY_CI_ID }}
@@ -55,6 +55,6 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          token: ${{ steps.ghapp-recover-infra-ci.outputs.token }}
+          token: ${{ steps.ghapp-cybersecurity-ci.outputs.token }}
           release-type: simple
           path: ${{ matrix.component }}
