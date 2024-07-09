@@ -9,7 +9,6 @@ inputs:
   artifactory_repository:
     description: "name of artifactory_repository to upload to"
     required: true
-    default: "./"
 
 runs:
   using: "composite"
