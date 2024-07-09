@@ -12,4 +12,4 @@ runs:
   using: "composite"
   steps:
     - shell: bash
-      run: echo "test"
+      run: echo "test 2"
