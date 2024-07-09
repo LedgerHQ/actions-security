@@ -1,60 +1,60 @@
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
 
-# permissions:
-#   contents: write
-#   pull-requests: write
+permissions:
+  contents: write
+  pull-requests: write
 
-# name: "Release new actions"
+name: "Release new actions"
 
-# jobs:
-#   changelist:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout Repository
-#         uses: actions/checkout@v4
-#         with:
-#           # Assume that the last merge to `main` always happens in less than 100 last commits
-#           fetch-depth: 100
-#       - name: Additional checkout
-#         run: |
-#           git fetch --no-tags --depth 100 origin "+refs/heads/main:refs/remotes/origin/main"
-#       - name: Get terraform modules changelist
-#         id: changelist
-#         run: |
-#           CHANGELIST=$(git diff --name-only HEAD^ HEAD | grep -v ".github/workflows" | awk -F'/' 'NF > 1 { print $1 }' | awk '{ printf "\"%s\",\n", $0 }' | sort | uniq | tr '\n' ' ' | sed s/..$//g)
-#           if [ -z "$CHANGELIST" ]
-#           then
-#             echo "changed_modules=nulll"
-#           else
-#             echo "changed_modules=${CHANGELIST}"
-#             echo "changed_modules={\"component\": [$(echo ${CHANGELIST})]}" >> $GITHUB_OUTPUT
-#           fi
-#     outputs:
-#       changed_modules: ${{ steps.changelist.outputs.changed_modules }}
-#   release:
-#     if: ${{ needs.changelist.outputs.changed_modules != '[]' && needs.changelist.outputs.changed_modules != '' }}
-#     permissions:
-#       contents: write
-#       pull-requests: write
-#     runs-on: ubuntu-latest
-#     needs:
-#       - changelist
-#     strategy:
-#       fail-fast: false
-#       matrix: ${{fromJson(needs.changelist.outputs.changed_modules)}}
-#     steps:
-#       - name: my-app-install token
-#         id: ghapp-recover-infra-ci
-#         uses: getsentry/action-github-app-token@v2
-#         with:
-#           app_id: ${{ secrets.CYBERSECURITY_CI_ID }}
-#           private_key: ${{ secrets.CYBERSECURITY_CI_PRIVATE_KEY }}
-#       - uses: googleapis/release-please-action@v4
-#         id: release
-#         with:
-#           token: ${{ steps.ghapp-recover-infra-ci.outputs.token }}
-#           release-type: simple
-#           path: ${{ matrix.component }}
+jobs:
+  changelist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Assume that the last merge to `main` always happens in less than 100 last commits
+          fetch-depth: 100
+      - name: Additional checkout
+        run: |
+          git fetch --no-tags --depth 100 origin "+refs/heads/main:refs/remotes/origin/main"
+      - name: Get terraform modules changelist
+        id: changelist
+        run: |
+          CHANGELIST=$(git diff --name-only HEAD^ HEAD | grep -v ".github/workflows" | awk -F'/' 'NF > 1 { print $1 }' | awk '{ printf "\"%s\",\n", $0 }' | sort | uniq | tr '\n' ' ' | sed s/..$//g)
+          if [ -z "$CHANGELIST" ]
+          then
+            echo "changed_modules=nulll"
+          else
+            echo "changed_modules=${CHANGELIST}"
+            echo "changed_modules={\"component\": [$(echo ${CHANGELIST})]}" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      changed_modules: ${{ steps.changelist.outputs.changed_modules }}
+  release:
+    if: ${{ needs.changelist.outputs.changed_modules != '[]' && needs.changelist.outputs.changed_modules != '' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    needs:
+      - changelist
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.changelist.outputs.changed_modules)}}
+    steps:
+      - name: my-app-install token
+        id: ghapp-recover-infra-ci
+        uses: getsentry/action-github-app-token@v2
+        with:
+          app_id: ${{ secrets.CYBERSECURITY_CI_ID }}
+          private_key: ${{ secrets.CYBERSECURITY_CI_PRIVATE_KEY }}
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ steps.ghapp-recover-infra-ci.outputs.token }}
+          release-type: simple
+          path: ${{ matrix.component }}
