@@ -46,7 +46,7 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.changelist.outputs.changed_actions)}}
     steps:
-      - name: my-app-install token
+      - name: get ghapp-cybersecurity-ci token
         id: ghapp-cybersecurity-ci
         uses: getsentry/action-github-app-token@v3
         with:
