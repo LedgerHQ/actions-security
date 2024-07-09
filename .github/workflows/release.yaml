@@ -21,21 +21,21 @@ jobs:
       - name: Additional checkout
         run: |
           git fetch --no-tags --depth 100 origin "+refs/heads/main:refs/remotes/origin/main"
-      - name: Get terraform modules changelist
+      - name: Get actions changelist
         id: changelist
         run: |
           CHANGELIST=$(git diff --name-only HEAD^ HEAD | grep -v ".github/workflows" | awk -F'/' 'NF > 1 { print $1 }' | awk '{ printf "\"%s\",\n", $0 }' | sort | uniq | tr '\n' ' ' | sed s/..$//g)
           if [ -z "$CHANGELIST" ]
           then
-            echo "changed_modules=nulll"
+            echo "changed_actions=nulll"
           else
-            echo "changed_modules=${CHANGELIST}"
-            echo "changed_modules={\"component\": [$(echo ${CHANGELIST})]}" >> $GITHUB_OUTPUT
+            echo "changed_actions=${CHANGELIST}"
+            echo "changed_actions={\"component\": [$(echo ${CHANGELIST})]}" >> $GITHUB_OUTPUT
           fi
     outputs:
-      changed_modules: ${{ steps.changelist.outputs.changed_modules }}
+      changed_actions: ${{ steps.changelist.outputs.changed_actions }}
   release:
-    if: ${{ needs.changelist.outputs.changed_modules != '[]' && needs.changelist.outputs.changed_modules != '' }}
+    if: ${{ needs.changelist.outputs.changed_actions != '[]' && needs.changelist.outputs.changed_actions != '' }}
     permissions:
       contents: write
       pull-requests: write
@@ -44,11 +44,11 @@ jobs:
       - changelist
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.changelist.outputs.changed_modules)}}
+      matrix: ${{fromJson(needs.changelist.outputs.changed_actions)}}
     steps:
       - name: my-app-install token
         id: ghapp-recover-infra-ci
-        uses: getsentry/action-github-app-token@v2
+        uses: getsentry/action-github-app-token@v3
         with:
           app_id: ${{ secrets.CYBERSECURITY_CI_ID }}
           private_key: ${{ secrets.CYBERSECURITY_CI_PRIVATE_KEY }}
