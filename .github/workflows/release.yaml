@@ -50,8 +50,8 @@ jobs:
         id: ghapp-cybersecurity-ci
         uses: getsentry/action-github-app-token@v3
         with:
-          app_id: ${{ secrets.CYBERSECURITY_CI_ID }}
-          private_key: ${{ secrets.CYBERSECURITY_CI_PRIVATE_KEY }}
+          app_id: ${{ secrets.CYBERSECURITY_CI_APP_ID }}
+          private_key: ${{ secrets.CYBERSECURITY_CI_APP_PRIVATE_KEY }}
       - uses: googleapis/release-please-action@v4
         id: release
         with:
