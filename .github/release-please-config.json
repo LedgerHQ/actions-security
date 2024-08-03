@@ -1,13 +1,16 @@
 {
-    "packages": {
-      "action/attest": {
-          "package-name": "attest"
-      },
-      "action/jfrog-login": {
-        "package-name": "jfrog-login"
-      },
-      "action/jfrog-upload": {
-        "package-name": "jfrog-upload"
-      }
+  "tag-separator": "@",
+  "include-component-in-tag": true,
+  "separate-pull-requests": true,
+  "packages": {
+    "action/attest": {
+      "package-name": "attest"
+    },
+    "action/jfrog-login": {
+      "package-name": "jfrog-login"
+    },
+    "action/jfrog-upload": {
+      "package-name": "jfrog-upload"
     }
   }
+}
