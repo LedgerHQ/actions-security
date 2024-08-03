@@ -56,5 +56,5 @@ jobs:
         id: release
         with:
           token: ${{ steps.ghapp-cybersecurity-ci.outputs.token }}
-          config-file: ./.github/release-please-config.json
+          config-file: .github/release-please-config.json
           path: ${{ matrix.component }}
