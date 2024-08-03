@@ -57,4 +57,5 @@ jobs:
         with:
           token: ${{ steps.ghapp-cybersecurity-ci.outputs.token }}
           release-type: simple
+          include-component-in-tag: true
           path: ${{ matrix.component }}
