@@ -9,7 +9,7 @@ inputs:
   artifactory_repository:
     description: "name of artifactory_repository to upload to"
     required: true
-    
+
 runs:
   using: "composite"
   steps:
@@ -19,7 +19,7 @@ runs:
         JF_URL: "https://artifactory.ledgerlabs.net"
       with:
         oidc-provider-name: github
-        oidc-audience: artifactory
+        oidc-audience: artifactory-test
     - run: |
         jfrog rt u ${{ inputs.path }} ${{ inputs.artifactory_repository}}
       shell: bash

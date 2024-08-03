@@ -1,0 +1,13 @@
+{
+    "packages": {
+      "action/attest": {
+          "package-name": "attest"
+      },
+      "action/jfrog-login": {
+        "package-name": "jfrog-login"
+      },
+      "action/jfrog-upload": {
+        "package-name": "jfrog-upload"
+      }
+    }
+  }
