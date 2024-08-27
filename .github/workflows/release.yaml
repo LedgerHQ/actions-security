@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.changelist.outputs.changed_actions)}}
     steps:
-      - name: get ghapp-cybersecurity-ci token
+      - name: "[CI] Get Github Token based on Github App authentication"
         id: ghapp-cybersecurity-ci
         uses: getsentry/action-github-app-token@v3
         with:
@@ -60,10 +60,46 @@ jobs:
           monorepo-tags: true
           path: ${{ matrix.component }}
           include-v-in-tag: false
-      - uses: actions/checkout@v4
+      - name: "[Release] Checkout code"
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@v4
         with:
           fetch-depth: 100
-      - name: tag major and minor versions
-        if: ${{ steps.release.outputs.releases_created }}
-        run: |
-          echo ${{ steps.release.outputs }}
+      - name: "[Release] Update Major tags"
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.ghapp-cybersecurity-ci.outputs.token }}
+          script: |
+            // Major
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ steps.release.outputs.major }}',
+              sha: context.sha
+            }).catch(err => {
+              if (err.status !== 422) throw err;
+              github.rest.git.updateRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'tags/v${{ steps.release.outputs.major }}',
+                sha: context.sha
+              });
+            })
+            // Minor
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ steps.release.outputs.minor }}',
+              sha: context.sha
+            }).catch(err => {
+              if (err.status !== 422) throw err;
+              github.rest.git.updateRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'tags/v${{ steps.release.outputs.minor }}',
+                sha: context.sha
+              });
+            })
+
+
+      
