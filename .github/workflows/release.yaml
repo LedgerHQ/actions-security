@@ -61,9 +61,11 @@ jobs:
           path: ${{ matrix.component }}
           include-v-in-tag: false
       - run: |
-          for output in $(echo "${{ steps.release.outputs }}" | jq -r 'keys[]'); do
-            echo "Output $output: ${{ steps.release.outputs[$output] }}"
-          done
+          echo "${{ steps.release.outputs.major }}"
+          echo "${{ steps.release.outputs.minor }}"
+          echo "${{ steps.release.outputs.patch }}"
+          echo "${{ steps.release.outputs.releases_created }}"
+          echo "${{ steps.release.outputs.tag_name }}"
       - name: "[Release] Checkout code"
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
