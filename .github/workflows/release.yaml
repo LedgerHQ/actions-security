@@ -68,9 +68,12 @@ jobs:
           echo "${{ steps.release.outputs.tag_name }}"
           echo "${{ steps.release.outputs.paths_released }}"
           echo "${{ steps.release.outputs.paths_released[0] }}"
-          echo "${{ steps.release.outputs.paths_released[0] }}-minor"
-          echo "${{ steps.release.outputs.paths_released[0] }}-major"
-          echo "${{ steps.release.outputs.paths_released[0] }}-tagname"
+          path_release="${{ steps.release.outputs.paths_released[0] }}"
+          path_clean=$(echo $paths_released | jq -r '.[0]')
+          echo $path_clean
+          tag_name_key="${path_clean}--tag_name"
+          tag_name=$(eval echo "\${{ steps.previous_step.outputs.$tag_name_key }}")
+          echo "tag_name"
       - name: "[Release] Checkout code"
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
