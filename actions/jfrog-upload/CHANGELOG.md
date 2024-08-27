@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-upload-0.2.0...actions/jfrog-upload-0.2.1) (2024-08-27)
+
+
+### Bug Fixes
+
+* **test-minor-major:** Test release ([0ce6b48](https://github.com/LedgerHQ/actions-security/commit/0ce6b487581f649a775df67d9b12a41b7a9a2bbe))
+
 ## [0.2.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-upload-0.1.0...actions/jfrog-upload-0.2.0) (2024-08-27)
 
 
