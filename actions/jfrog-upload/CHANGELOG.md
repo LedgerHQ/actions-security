@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-upload-0.2.1...actions/jfrog-upload-0.2.2) (2024-08-27)
+
+
+### Bug Fixes
+
+* **minor-major:** add major or minor tag update ([38a70e2](https://github.com/LedgerHQ/actions-security/commit/38a70e21aef870f15e774f28e0b2740587106d46))
+* **trigger:** Update oidc-audience in jfrog-upload action.yaml ([b927d73](https://github.com/LedgerHQ/actions-security/commit/b927d737a401193006ea73261c0c30aaef47bdac))
+
 ## [0.2.1](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-upload-0.2.0...actions/jfrog-upload-0.2.1) (2024-08-27)
 
 
