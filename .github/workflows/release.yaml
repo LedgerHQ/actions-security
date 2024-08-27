@@ -75,14 +75,14 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/v${{ steps.release.outputs.major }}',
+              ref: 'refs/tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}',
               sha: context.sha
             }).catch(err => {
               if (err.status !== 422) throw err;
               github.rest.git.updateRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: 'tags/v${{ steps.release.outputs.major }}',
+                ref: 'tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}',
                 sha: context.sha
               });
             })
@@ -90,14 +90,14 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/v${{ steps.release.outputs.minor }}',
+              ref: 'refs/tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}',
               sha: context.sha
             }).catch(err => {
               if (err.status !== 422) throw err;
               github.rest.git.updateRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: 'tags/v${{ steps.release.outputs.minor }}',
+                ref: 'tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}',
                 sha: context.sha
               });
             })
