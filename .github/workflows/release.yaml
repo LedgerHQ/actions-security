@@ -16,7 +16,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          # Assume that the last merge to `main` always happens in less than 100 last commits
           fetch-depth: 100
       - name: Additional checkout
         run: |
@@ -61,3 +60,11 @@ jobs:
           monorepo-tags: true
           path: ${{ matrix.component }}
           include-v-in-tag: false
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+      - name: tag major and minor versions
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          echo ${{ steps.release.outputs.releases_created }}
+          echo ${{ steps.release.outputs.paths_released }}
