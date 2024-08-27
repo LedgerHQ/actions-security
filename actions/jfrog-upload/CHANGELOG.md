@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-upload-0.1.0...actions/jfrog-upload-0.2.0) (2024-08-27)
+
+
+### Features
+
+* **test-major-minor-option:** Update release.yaml workflow ([7b8c4f7](https://github.com/LedgerHQ/actions-security/commit/7b8c4f7ccf09ccc40ad75dc563924b369c8145c5))
+
 ## 0.1.0 (2024-08-27)
 
 
