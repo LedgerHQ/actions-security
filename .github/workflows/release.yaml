@@ -67,6 +67,7 @@ jobs:
           fetch-depth: 100
       - name: "[Release] Update Major tags"
         uses: actions/github-script@v7
+        if: ${{ steps.release.outputs.release_created }}
         with:
           github-token: ${{ steps.ghapp-cybersecurity-ci.outputs.token }}
           script: |
