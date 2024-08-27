@@ -60,6 +60,10 @@ jobs:
           monorepo-tags: true
           path: ${{ matrix.component }}
           include-v-in-tag: false
+      - run: |
+          for output in $(echo "${{ steps.release.outputs }}" | jq -r 'keys[]'); do
+            echo "Output $output: ${{ steps.release.outputs[$output] }}"
+          done
       - name: "[Release] Checkout code"
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
