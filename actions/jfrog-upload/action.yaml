@@ -19,7 +19,7 @@ runs:
         JF_URL: "https://artifactory.ledgerlabs.net"
       with:
         oidc-provider-name: github
-        oidc-audience: artifactory-4
+        oidc-audience: artifactory-5
     - run: |
         jfrog rt u ${{ inputs.path }} ${{ inputs.artifactory_repository}}
       shell: bash
