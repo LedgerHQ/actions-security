@@ -66,5 +66,4 @@ jobs:
       - name: tag major and minor versions
         if: ${{ steps.release.outputs.releases_created }}
         run: |
-          echo ${{ steps.release.outputs.releases_created }}
-          echo ${{ steps.release.outputs.paths_released }}
+          echo ${{ steps.release.outputs }}
