@@ -19,3 +19,5 @@ runs:
       with:
         oidc-provider-name: github
         oidc-audience: artifactory
+    - name: JFrog CLI version
+      run: jf --version
