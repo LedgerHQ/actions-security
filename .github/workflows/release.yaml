@@ -66,6 +66,11 @@ jobs:
           echo "${{ steps.release.outputs.patch }}"
           echo "${{ steps.release.outputs.releases_created }}"
           echo "${{ steps.release.outputs.tag_name }}"
+          echo "${{ steps.release.outputs.paths_released }}"
+          echo "${{ steps.release.outputs.paths_released[0] }}"
+          echo "${{ steps.release.outputs.paths_released[0] }}-minor"
+          echo "${{ steps.release.outputs.paths_released[0] }}-major"
+          echo "${{ steps.release.outputs.paths_released[0] }}-tagname"
       - name: "[Release] Checkout code"
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
