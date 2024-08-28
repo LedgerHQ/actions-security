@@ -62,22 +62,8 @@ jobs:
           include-v-in-tag: false
       - name: Dump steps context
         env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
+          STEPS_CONTEXT: ${{ toJson(steps.release.outputs) }}
         run: echo "$STEPS_CONTEXT"
-      # - run: |
-      #     echo "${{ steps.release.outputs.major }}"
-      #     echo "${{ steps.release.outputs.minor }}"
-      #     echo "${{ steps.release.outputs.patch }}"
-      #     echo "${{ steps.release.outputs.releases_created }}"
-      #     echo "${{ steps.release.outputs.tag_name }}"
-      #     echo "${{ steps.release.outputs.paths_released }}"
-      #     echo "${{ steps.release.outputs.paths_released[0] }}"
-      #     path_release="${{ steps.release.outputs.paths_released[0] }}"
-      #     path_clean=$(echo $paths_released | jq -r '.[0]')
-      #     echo $path_clean
-      #     tag_name_key="${path_clean}--tag_name"
-      #     tag_name=$(eval echo "\${{ steps.previous_step.outputs.$tag_name_key }}")
-      #     echo "tag_name"
       - name: "[Release] Checkout code"
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
