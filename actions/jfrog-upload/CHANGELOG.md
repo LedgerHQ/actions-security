@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-upload-0.2.7...actions/jfrog-upload-0.2.8) (2024-08-28)
+
+
+### Bug Fixes
+
+* Update oidc-audience in jfrog-upload action.yaml ([eae92d3](https://github.com/LedgerHQ/actions-security/commit/eae92d3db20bfd17ac2ce63c1ad42cbe35a733de))
+
 ## [0.2.7](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-upload-0.2.6...actions/jfrog-upload-0.2.7) (2024-08-28)
 
 
