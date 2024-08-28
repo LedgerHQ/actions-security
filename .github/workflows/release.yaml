@@ -60,10 +60,26 @@ jobs:
           monorepo-tags: true
           path: ${{ matrix.component }}
           include-v-in-tag: false
-      - name: Dump steps context
+      - name: Echo Minor / Major
         env:
           STEPS_CONTEXT: ${{ toJson(steps.release.outputs) }}
-        run: echo "$STEPS_CONTEXT"
+        shell: bash
+        run: |
+            PATHS_RELEASED=$(echo "$STEPS_CONTEXT" | jq -r '.paths_released' | sed 's/[][]//g' | tr -d '"')
+
+            TAG_NAME_KEY="${PATHS_RELEASED}--tag_name"
+            TAG_NAME=$(echo "$STEPS_CONTEXT" | jq -r --arg key "$TAG_NAME_KEY" '.[$key]')
+
+            MAJOR_KEY="${PATHS_RELEASED}--major"
+            MAJOR_VERSION=$(echo "$STEPS_CONTEXT" | jq -r --arg key "$MAJOR_KEY" '.[$key]')
+            MINOR_KEY="${PATHS_RELEASED}--minor"
+            MINOR_VERSION=$(echo "$STEPS_CONTEXT" | jq -r --arg key "$MINOR_KEY" '.[$key]')
+            
+            MAJOR_MINOR_TAG="${PATHS_RELEASED}-${MAJOR_VERSION}.${MINOR_VERSION}"
+            MAJOR_TAG="${PATHS_RELEASED}-${MAJOR_VERSION}"
+
+            echo "Major + Minor Tag: $MAJOR_MINOR_TAG"
+            echo "Major Tag: $MAJOR_TAG"
       - name: "[Release] Checkout code"
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
