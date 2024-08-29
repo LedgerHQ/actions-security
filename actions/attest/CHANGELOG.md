@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/LedgerHQ/actions-security/compare/actions/attest-0.1.0...actions/attest-0.2.0) (2024-08-29)
+
+
+### Features
+
+* Add to attest action the push-to-registry option ([b38fb86](https://github.com/LedgerHQ/actions-security/commit/b38fb8663618d7323ed84545e5f030abb40c71aa))
+
 ## 0.1.0 (2024-08-27)
 
 
