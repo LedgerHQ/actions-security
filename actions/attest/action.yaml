@@ -6,6 +6,10 @@ inputs:
     description: "Path to the artefact to attest"
     required: true
     default: "./"
+  push-to-registry:
+    description: "Push the attestation to the registry"
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -13,3 +17,5 @@ runs:
     - uses: actions/attest-build-provenance@v1
       with:
         subject-path: ${{ inputs.subject-path }}
+        show-summary: true
+        push-to-registry: ${{ inputs.push-to-registry }}
