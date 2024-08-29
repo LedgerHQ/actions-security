@@ -67,15 +67,15 @@ jobs:
           RELEASE_OUTPUTS: ${{ toJson(steps.release.outputs) }}
         shell: bash
         run: |
-            PATHS_RELEASED=$(echo "${{ env.RELEASE_OUTPUTS }}" | jq -r '.paths_released' | sed 's/[][]//g' | tr -d '"')
+            PATHS_RELEASED=$(echo "$RELEASE_OUTPUTS" | jq -r '.paths_released' | sed 's/[][]//g' | tr -d '"')
 
             TAG_NAME_KEY="${PATHS_RELEASED}--tag_name"
-            TAG_NAME=$(echo "${{ env.RELEASE_OUTPUTS }}" | jq -r --arg key "$TAG_NAME_KEY" '.[$key]')
+            TAG_NAME=$(echo "$RELEASE_OUTPUTS" | jq -r --arg key "$TAG_NAME_KEY" '.[$key]')
 
             MAJOR_KEY="${PATHS_RELEASED}--major"
-            MAJOR_VERSION=$(echo "${{ env.RELEASE_OUTPUTS }}" | jq -r --arg key "$MAJOR_KEY" '.[$key]')
+            MAJOR_VERSION=$(echo "$RELEASE_OUTPUTS" | jq -r --arg key "$MAJOR_KEY" '.[$key]')
             MINOR_KEY="${PATHS_RELEASED}--minor"
-            MINOR_VERSION=$(echo "${{ env.RELEASE_OUTPUTS }}" | jq -r --arg key "$MINOR_KEY" '.[$key]')
+            MINOR_VERSION=$(echo "$RELEASE_OUTPUTS" | jq -r --arg key "$MINOR_KEY" '.[$key]')
             
             MAJOR_MINOR_TAG="${PATHS_RELEASED}-${MAJOR_VERSION}.${MINOR_VERSION}"
             MAJOR_TAG="${PATHS_RELEASED}-${MAJOR_VERSION}"
