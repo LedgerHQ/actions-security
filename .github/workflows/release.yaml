@@ -45,13 +45,14 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.changelist.outputs.changed_actions)}}
     steps:
-      - name: "[CI] Get Github Token based on Github App authentication"
+      - name: "[Prepare] Get Github Token based on Github App authentication"
         id: ghapp-cybersecurity-ci
         uses: getsentry/action-github-app-token@v3
         with:
           app_id: ${{ secrets.CYBERSECURITY_CI_APP_ID }}
           private_key: ${{ secrets.CYBERSECURITY_CI_APP_PRIVATE_KEY }}
-      - uses: google-github-actions/release-please-action@v3
+      - name: "[Release] Run action google-github-actions/release-please-action@v3"
+        uses: google-github-actions/release-please-action@v3
         id: release
         with:
           token: ${{ steps.ghapp-cybersecurity-ci.outputs.token }}
@@ -60,62 +61,66 @@ jobs:
           monorepo-tags: true
           path: ${{ matrix.component }}
           include-v-in-tag: false
-      - name: Echo Minor / Major
+      - name: "[Prepare] Compute major and minor tags"
+        id: prepare-major-minor-tags
         env:
-          STEPS_CONTEXT: ${{ toJson(steps.release.outputs) }}
+          RELEASE_OUTPUTS: ${{ toJson(steps.release.outputs) }}
         shell: bash
         run: |
-            PATHS_RELEASED=$(echo "$STEPS_CONTEXT" | jq -r '.paths_released' | sed 's/[][]//g' | tr -d '"')
+            PATHS_RELEASED=$(echo "$RELEASE_OUTPUTS" | jq -r '.paths_released' | sed 's/[][]//g' | tr -d '"')
 
             TAG_NAME_KEY="${PATHS_RELEASED}--tag_name"
-            TAG_NAME=$(echo "$STEPS_CONTEXT" | jq -r --arg key "$TAG_NAME_KEY" '.[$key]')
+            TAG_NAME=$(echo "$RELEASE_OUTPUTS" | jq -r --arg key "$TAG_NAME_KEY" '.[$key]')
 
             MAJOR_KEY="${PATHS_RELEASED}--major"
-            MAJOR_VERSION=$(echo "$STEPS_CONTEXT" | jq -r --arg key "$MAJOR_KEY" '.[$key]')
+            MAJOR_VERSION=$(echo "$RELEASE_OUTPUTS" | jq -r --arg key "$MAJOR_KEY" '.[$key]')
             MINOR_KEY="${PATHS_RELEASED}--minor"
-            MINOR_VERSION=$(echo "$STEPS_CONTEXT" | jq -r --arg key "$MINOR_KEY" '.[$key]')
+            MINOR_VERSION=$(echo "$RELEASE_OUTPUTS" | jq -r --arg key "$MINOR_KEY" '.[$key]')
             
             MAJOR_MINOR_TAG="${PATHS_RELEASED}-${MAJOR_VERSION}.${MINOR_VERSION}"
             MAJOR_TAG="${PATHS_RELEASED}-${MAJOR_VERSION}"
 
-            echo "Major + Minor Tag: $MAJOR_MINOR_TAG"
-            echo "Major Tag: $MAJOR_TAG"
-      - name: "[Release] Checkout code"
+            echo "tag_major_minor=$MAJOR_MINOR_TAG" >> "$GITHUB_OUTPUT"
+            echo "tag_major=$MAJOR_TAG" >> "$GITHUB_OUTPUT"
+      - name: "[Prepare] Checkout code"
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
       - name: "[Release] Update Major tags"
         uses: actions/github-script@v7
         if: ${{ steps.release.outputs.releases_created }}
+        env:
+          TAG_MAJOR_MINOR: ${{ steps.prepare-major-minor-tags.outputs.tag_major_minor }}
+          TAG_MAJOR: ${{ steps.prepare-major-minor-tags.outputs.tag_major_minor }}
         with:
           github-token: ${{ steps.ghapp-cybersecurity-ci.outputs.token }}
           script: |
-            // Major
+            // tag major
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}',
+              ref: 'refs/tags/$TAG_MAJOR',
               sha: context.sha
             }).catch(err => {
               if (err.status !== 422) throw err;
               github.rest.git.updateRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: 'tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}',
+                ref: 'tags/$TAG_MAJOR',
                 sha: context.sha
               });
             })
-            // Minor
+            // tag major + minor
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}',
+              ref: 'refs/tags/$TAG_MAJOR_MINOR',
               sha: context.sha
             }).catch(err => {
               if (err.status !== 422) throw err;
               github.rest.git.updateRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: 'tags/${{ matrix.component }}-v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}',
+                ref: 'tags/$TAG_MAJOR_MINOR',
                 sha: context.sha
               });
             })
