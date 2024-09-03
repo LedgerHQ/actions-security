@@ -17,5 +17,5 @@ runs:
       env:
         JF_URL: "https://jfrog.ledgerlabs.net"
       with:
-        oidc-provider-name: github
+        oidc-provider-name: github-oidc
         oidc-audience: jfrog-github
