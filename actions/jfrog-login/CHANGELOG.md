@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-0.1.0...actions/jfrog-login-1.0.0) (2024-09-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* new oidc-provider-name
+
+### Features
+
+* new oidc-provider-name ([7fef933](https://github.com/LedgerHQ/actions-security/commit/7fef933b8d5029513dfc01ebedf67050849a8d7e))
+
 ## 0.1.0 (2024-08-27)
 
 
