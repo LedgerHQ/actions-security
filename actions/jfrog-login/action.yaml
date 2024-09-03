@@ -15,11 +15,7 @@ runs:
     - uses: jfrog/setup-jfrog-cli@v4
       id: setup-jfrog-cli
       env:
-        JF_URL: "https://artifactory.ledgerlabs.net"
+        JF_URL: "https://jfrog.ledgerlabs.net"
       with:
         oidc-provider-name: github
-        oidc-audience: artifactory
-    - name: JFrog CLI version
-      shell: bash
-      run: |
-        jf --version
+        oidc-audience: jfrog-github
