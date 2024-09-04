@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.0.0...actions/jfrog-login-1.1.0) (2024-09-04)
+
+
+### Features
+
+* add url of jfrog as output ([b54872b](https://github.com/LedgerHQ/actions-security/commit/b54872be856bf23dc2caae73c8a01f69f71fc555))
+
 ## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-0.1.0...actions/jfrog-login-1.0.0) (2024-09-03)
 
 
