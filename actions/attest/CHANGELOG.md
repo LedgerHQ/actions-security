@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/attest-0.2.0...actions/attest-1.0.0) (2024-09-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* add support for container attestation
+
+### Features
+
+* add support for container attestation ([623f0b0](https://github.com/LedgerHQ/actions-security/commit/623f0b05d8c09ae4bd150a5bef29f0e77deb8de8))
+
 ## [0.2.0](https://github.com/LedgerHQ/actions-security/compare/actions/attest-0.1.0...actions/attest-0.2.0) (2024-08-29)
 
 
