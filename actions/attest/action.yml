@@ -3,13 +3,22 @@ description: "This action is used to generate a provenance file and to sign it (
 
 inputs:
   subject-path:
-    description: "Path to the artefact to attest"
-    required: true
+    description: 'Path to the artifact serving as the subject of the attestation. Must specify exactly one of "subject-path" or "subject-digest". May contain a glob pattern or list of paths (total subject count cannot exceed 2500).'
+    required: false
     default: "./"
-  push-to-registry:
-    description: "Push the attestation to the registry"
+  subject-digest:
+    description: 'SHA256 digest of the subject for the attestation. Must be in the form "sha256:hex_digest" (e.g. "sha256:abc123..."). Must specify exactly one of "subject-path" or "subject-digest".'
     required: false
     default: "false"
+  subject-name:
+    description: 'Subject name as it should appear in the attestation. Required unless "subject-path" is specified, in which case it will be inferred from the path.'
+    required: false
+    default: "false"
+  push-to-registry:
+    description: 'Whether to push the attestation to the image registry. Requires that the "subject-name" parameter specify the fully-qualified image name and that the "subject-digest" parameter be specified. Defaults to false.'
+    required: false
+    default: "false"
+#TODO: Support predicate
 
 runs:
   using: "composite"
@@ -17,5 +26,7 @@ runs:
     - uses: actions/attest-build-provenance@v1
       with:
         subject-path: ${{ inputs.subject-path }}
-        show-summary: true
+        subject-digest: ${{ inputs.subject-digest }}
+        subject-name: ${{ inputs.subject-name }}
         push-to-registry: ${{ inputs.push-to-registry }}
+        show-summary: true
