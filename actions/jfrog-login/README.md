@@ -1,6 +1,10 @@
 # Action: jfrog-login
 
+<!-- action-docs-description source="action.yml" -->
+## Description
+
 This action is used to login to the JFrog Plateform of Ledger (Artifactory, Xray, etc.).
+<!-- action-docs-description source="action.yml" -->
 
 ## Usage
 
