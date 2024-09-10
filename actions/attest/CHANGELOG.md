@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/attest-1.0.0...actions/attest-1.0.1) (2024-09-10)
+
+
+### Bug Fixes
+
+* **attest:** remove value for default subject ([2f78797](https://github.com/LedgerHQ/actions-security/commit/2f78797c5c78e76c6a1dff8143804f8243c538b9))
+
 ## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/attest-0.2.0...actions/attest-1.0.0) (2024-09-10)
 
 
