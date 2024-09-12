@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.0...actions/sign-blob-1.0.1) (2024-09-12)
+
+
+### Bug Fixes
+
+* bypass to allow to sign blob without validation ([463703a](https://github.com/LedgerHQ/actions-security/commit/463703a0a2cdb0ff7268877519dba0f9bc15837d))
+
 ## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-0.1.0...actions/sign-blob-1.0.0) (2024-09-12)
 
 
