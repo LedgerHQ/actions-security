@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.8](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.7...actions/sign-blob-1.0.8) (2024-09-12)
+
+
+### Bug Fixes
+
+* **sign-blob:** use github action if for public check ([35f16d4](https://github.com/LedgerHQ/actions-security/commit/35f16d4b20f13b62b324ca32bdf2f82c85387269))
+
 ## [1.0.7](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.6...actions/sign-blob-1.0.7) (2024-09-12)
 
 
