@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-0.1.0...actions/sign-blob-1.0.0) (2024-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* release new version of sign blob
+
+### Features
+
+* release new version of sign blob ([119956c](https://github.com/LedgerHQ/actions-security/commit/119956c47f6c55450ec7e498abba337c6482c62e))
+
 ## 0.1.0 (2024-09-11)
 
 
