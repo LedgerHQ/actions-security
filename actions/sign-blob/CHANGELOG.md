@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.5...actions/sign-blob-1.0.6) (2024-09-12)
+
+
+### Bug Fixes
+
+* **sign-blob:** better condition to avoid collision ([97ecf52](https://github.com/LedgerHQ/actions-security/commit/97ecf52a8db6d45844bc321df15c0256efed1216))
+
 ## [1.0.5](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.4...actions/sign-blob-1.0.5) (2024-09-12)
 
 
