@@ -10,9 +10,15 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Check if repository is public (signature are leaking private information)
+      shell: bash
+      run: |
+        if [[ "${{ github.event.repository.private }}" == "true" ]]; then
+          echo "This workflow only runs on public repositories. To avoid leaking private information, the workflow will be stopped."
+          exit 0  # Stop the workflow, but without an error (successful exit)
+        fi
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3
-
     - name: Sign Blobs (python sheel)
       shell: python
       run: |
