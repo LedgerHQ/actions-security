@@ -13,7 +13,7 @@ runs:
     - name: Check if repository is public (signature are leaking private information)
       shell: bash
       run: |
-        if [[ "${{ github.repository_visibility }}" == "private" || "${{ github.repository_visibility }}" == "internal" ]]; then
+        if [[ "${{ github.event.repository.visibility }}" == "private" || "${{ github.event.repository.visibility }}" == "internal" ]]; then
           echo "This workflow only runs on public repositories. To avoid leaking private information, the workflow will be stopped."
           exit 0  # Stop the workflow, but without an error (successful exit)
         fi
