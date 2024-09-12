@@ -3,7 +3,7 @@ description: "This action is used to sign a blob in keyless mode based on Github
 
 inputs:
   path:
-    description: 'Path to the artifact to sign'
+    description: 'Path to the artifact or directory with artifacts to sign'
     required: true
     default: ""
   
@@ -16,5 +16,14 @@ runs:
     - name: Sign blob
       shell: bash
       run: |
-        cosign sign-blob --yes ${{ inputs.path }} --bundle cosign.bundle
+        if [[ -d "${{ inputs.path }}" ]]; then
+         for file in ${{ inputs.path }}/*; do
+          cosign sign-blob --yes "$file" --bundle "$file.cosign.bundle"
+         done
+        elif [[ -f "${{ inputs.path }}" ]]; then
+         cosign sign-blob --yes ${{ inputs.path }} --bundle ${{ inputs.path }}.cosign.bundle
+        else
+         echo "Invalid path provided"
+         exit 1
+        fi
     # TODO: Upload the signature to the artifact store
