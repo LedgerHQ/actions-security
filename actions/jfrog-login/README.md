@@ -1,20 +1,31 @@
-# Action: jfrog-login
 
-<!-- action-docs-description source="action.yml" -->
-## Description
+# **GitHub Action: `jfrog-login`**
 
-This action is used to login to the JFrog Plateform of Ledger (Artifactory, Xray, etc.).
-<!-- action-docs-description source="action.yml" -->
+## **Overview**
 
-## Usage
+The `jfrog-login` GitHub Action facilitates a secure login to Ledger's JFrog platform, which includes services such as **Artifactory** and **Xray**. By using OIDC authentication, this action ensures secure access to manage artifacts, perform security scans, and interact with the JFrog APIs and CLI without handling sensitive credentials manually.
 
-### Permissions
+This action is designed for seamless integration within Ledger's CI/CD pipeline, allowing developers to securely interact with JFrog services while automating critical parts of the software supply chain.
+
+---
+
+## **Usage**
+
+### **Required Permissions**
+
+To enable this action to work properly, ensure the following permissions are set in your workflow:
+
 ```yaml
 permissions:
-    id-token: write
+  id-token: write
 ```
 
-### Example Workflow
+This grants the action permission to generate the OIDC token required for authentication with JFrog.
+
+### **Example Workflow**
+
+Here's how you can use the `jfrog-login` action within your workflow:
+
 ```yaml
 jobs:
   release:
@@ -22,14 +33,13 @@ jobs:
     steps:
       - name: Login to JFrog Ledger
         id: jfrog-login
-        uses: LedgerHQ/actions-security/actions/jfrog-login@actions/jfrog-login-1
+        uses: LedgerHQ/actions-security/actions/jfrog-login@v1
 ```
 
-## Inputs
-This actions require no inputs.
+---
 
 <!-- action-docs-outputs source="action.yml" -->
-## Outputs
+## **Outputs**
 
 | name | description |
 | --- | --- |
@@ -38,9 +48,17 @@ This actions require no inputs.
 | `jfrog-url` | <p>Jfrog URL to be used for the JFrog API / CLI</p> |
 <!-- action-docs-outputs source="action.yml" -->
 
+---
 
-<!-- action-docs-runs source="action.yml" -->
-## Runs
+## **Runs**
 
-This action is a `composite` action.
-<!-- action-docs-runs source="action.yml" -->
+This action is a **composite action**, meaning it aggregates multiple steps to streamline the login process and ensure secure access to JFrog services.
+
+---
+
+## **Additional Information**
+
+- This action securely manages the OIDC-based login for Ledger's JFrog platform, removing the need for manual credential handling.
+- Ensure your GitHub repository and workflows are configured to use OIDC for maximum security and efficiency.
+
+For further assistance, please contact Ledger's Cyber Security team.
