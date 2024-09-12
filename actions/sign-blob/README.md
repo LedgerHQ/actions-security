@@ -3,7 +3,7 @@
 <!-- action-docs-description source="action.yml" -->
 ## Description
 
-This action is used to sign a blob in keyless mode based on Github OIDC token
+This action is used to sign blobs in keyless mode based on Github OIDC token.
 <!-- action-docs-description source="action.yml" -->
 
 ## Usage
@@ -32,7 +32,7 @@ jobs:
 
 | name | description | required | default |
 | --- | --- | --- | --- |
-| `path` | <p>Path to the artifact to sign</p> | `true` | `""` |
+| `path` | <p>Path to the artifact, directory, or glob pattern to match files for signing</p> | `true` | `""` |
 <!-- action-docs-inputs source="action.yml" -->
 
 <!-- action-docs-outputs source="action.yml" -->
