@@ -16,5 +16,5 @@ runs:
     - name: Sign blob
       shell: bash
       run: |
-        cosign sign-blob ${{ inputs.path }} --bundle cosign.bundle
+        cosign sign-blob --yes ${{ inputs.path }} --bundle cosign.bundle
     # TODO: Upload the signature to the artifact store
