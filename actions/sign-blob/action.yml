@@ -3,7 +3,7 @@ description: "This action is used to sign blobs in keyless mode based on Github 
 
 inputs:
   path:
-    description: 'Path to the artifact, directory, or regex pattern to match files for signing'
+    description: 'Path to the artifact, directory, or glob pattern to match files for signing'
     required: true
     default: ""
 
@@ -13,44 +13,57 @@ runs:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3
 
-    - name: Validate Path and Sign Blobs
-      shell: bash
+    - name: Sign Blobs (python sheel)
+      shell: python
       run: |
-        # Check if the path exists
-        if [[ ! -e "${{ inputs.path }}" ]]; then
-          echo "Error: The specified path '${{ inputs.path }}' does not exist."
-          exit 1
-        fi
+        import os
+        import glob
+        import subprocess
+        import sys
 
-        # Check if it's a directory
-        if [[ -d "${{ inputs.path }}" ]]; then
-          # Loop through all files in the directory
-          for file in ${{ inputs.path }}/*; do
-            if [[ -f "$file" ]]; then
-              echo "Signing file: $file"
-              cosign sign-blob --yes "$file" --output-signature "${file}.sig" --bundle "${file}.bundle"
-            else
-              echo "Warning: Skipping non-file: $file"
-            fi
-          done
-        # Check if it's a regex pattern (glob pattern) and find matching files
-        elif [[ -n $(echo "${{ inputs.path }}" | grep -E '*|?') ]]; then
-          matching_files=$(find . -type f -name "${{ inputs.path }}")
-          if [[ -z "$matching_files" ]]; then
-            echo "Error: No files found matching pattern '${{ inputs.path }}'"
-            exit 1
-          fi
-          for file in $matching_files; do
-            echo "Signing file: $file"
-            cosign sign-blob --yes "$file" --output-signature "${file}.sig" --bundle "${file}.bundle"
-          done
-        # Handle single file
-        elif [[ -f "${{ inputs.path }}" ]]; then
-          echo "Signing single file: ${{ inputs.path }}"
-          cosign sign-blob --yes "${{ inputs.path }}" --output-signature "${{ inputs.path }}.sig" --bundle "${{ inputs.path }}.bundle"
-        else
-          echo "Error: '${{ inputs.path }}' is neither a valid file nor a directory."
-          exit 1
-        fi
+        path = "${{ inputs.path }}"
+
+        # Check if the provided path exists
+        if not os.path.exists(path):
+            print(f"Error: The specified path '{path}' does not exist.")
+            sys.exit(1)
+
+        # Function to sign a file
+        def sign_file(file_path):
+            print(f"Signing file: {file_path}")
+            signature_file = f"{file_path}.sig"
+            bundle_file = f"{file_path}.bundle"
+            try:
+                subprocess.run(["cosign", "sign-blob", "--yes", file_path, "--output-signature", signature_file, "--bundle", bundle_file], check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"Error signing file {file_path}: {e}")
+                sys.exit(1)
+
+        # If the input is a directory, sign all files in the directory
+        if os.path.isdir(path):
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    sign_file(full_path)
+
+        # If the input is a file or a glob pattern, sign the matching files
+        elif "*" in path or "?" in path:
+            matching_files = glob.glob(path, recursive=True)
+            if not matching_files:
+                print(f"Error: No files found matching pattern '{path}'")
+                sys.exit(1)
+            for file in matching_files:
+                if os.path.isfile(file):
+                    sign_file(file)
+                else:
+                    print(f"Warning: Skipping non-file: {file}")
+
+        # If it's a single file, sign that file
+        elif os.path.isfile(path):
+            sign_file(path)
+
+        else:
+            print(f"Error: '{path}' is neither a valid file nor a directory.")
+            sys.exit(1)
 
     # TODO: Upload the signatures and bundle files to the artifact store
