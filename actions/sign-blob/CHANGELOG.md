@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.3...actions/sign-blob-1.0.4) (2024-09-12)
+
+
+### Bug Fixes
+
+* **sign-blob:** use python to check if possible to sign a bob ([6c3ae89](https://github.com/LedgerHQ/actions-security/commit/6c3ae89d15aada8b85d4ac92cae41a3ac6bb0bb3))
+
 ## [1.0.3](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.2...actions/sign-blob-1.0.3) (2024-09-12)
 
 
