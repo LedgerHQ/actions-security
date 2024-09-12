@@ -11,15 +11,14 @@ runs:
   using: "composite"
   steps:
     - name: Check if repository is public (signature are leaking private information)
+      if: ${{ github.event.repository.visibility != 'public' }}
       shell: bash
-      run: |
-        if [[ "${{ github.event.repository.visibility }}" == "private" || "${{ github.event.repository.visibility }}" == "internal" ]]; then
-          echo "This workflow only runs on public repositories. To avoid leaking private information, the workflow will be stopped."
-          exit 0  # Stop the workflow, but without an error (successful exit)
-        fi
+      run: echo "This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
     - name: Install Cosign
+      if: ${{ github.event.repository.visibility == 'public' }}
       uses: sigstore/cosign-installer@v3
     - name: Sign Blobs (python sheel)
+      if: ${{ github.event.repository.visibility == 'public' }}
       shell: python
       run: |
         import os
