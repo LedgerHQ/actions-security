@@ -17,7 +17,7 @@ runs:
     - name: Install Cosign
       if: ${{ github.event.repository.visibility == 'public' }}
       uses: sigstore/cosign-installer@v3
-    - name: Sign Blobs (python sheel)
+    - name: Sign Blobs
       if: ${{ github.event.repository.visibility == 'public' }}
       shell: python
       run: |
