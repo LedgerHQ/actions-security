@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.4...actions/sign-blob-1.0.5) (2024-09-12)
+
+
+### Bug Fixes
+
+* **sign-blob:** add private repo protection ([b031b97](https://github.com/LedgerHQ/actions-security/commit/b031b97d1063d8b0e6e31f6def7799c9b8b56658))
+
 ## [1.0.4](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.3...actions/sign-blob-1.0.4) (2024-09-12)
 
 
