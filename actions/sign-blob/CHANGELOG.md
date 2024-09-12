@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.2...actions/sign-blob-1.0.3) (2024-09-12)
+
+
+### Bug Fixes
+
+* **sign-blob:** make path use more complex to handle also regex ([e64ae7f](https://github.com/LedgerHQ/actions-security/commit/e64ae7ff95986ed507b567911d8a8e11aea53f56))
+
 ## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.1...actions/sign-blob-1.0.2) (2024-09-12)
 
 
