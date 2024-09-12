@@ -1,29 +1,56 @@
-name: "[Ledger Security] Sign an blob"
-description: "This action is used to sign a blob in keyless mode based on Github OIDC token."
+name: "[Ledger Security] Sign blobs"
+description: "This action is used to sign blobs in keyless mode based on Github OIDC token."
 
 inputs:
   path:
-    description: 'Path to the artifact or directory with artifacts to sign'
+    description: 'Path to the artifact, directory, or regex pattern to match files for signing'
     required: true
     default: ""
-  
 
 runs:
   using: "composite"
   steps:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3
-    - name: Sign blob
+
+    - name: Validate Path and Sign Blobs
       shell: bash
       run: |
-        if [[ -d "${{ inputs.path }}" ]]; then
-         for file in ${{ inputs.path }}/*; do
-          cosign sign-blob --yes "$file" --bundle "$file.cosign.bundle"
-         done
-        elif [[ -f "${{ inputs.path }}" ]]; then
-         cosign sign-blob --yes ${{ inputs.path }} --bundle ${{ inputs.path }}.cosign.bundle
-        else
-         echo "Invalid path provided"
-         exit 1
+        # Check if the path exists
+        if [[ ! -e "${{ inputs.path }}" ]]; then
+          echo "Error: The specified path '${{ inputs.path }}' does not exist."
+          exit 1
         fi
-    # TODO: Upload the signature to the artifact store
+
+        # Check if it's a directory
+        if [[ -d "${{ inputs.path }}" ]]; then
+          # Loop through all files in the directory
+          for file in ${{ inputs.path }}/*; do
+            if [[ -f "$file" ]]; then
+              echo "Signing file: $file"
+              cosign sign-blob --yes "$file" --output-signature "${file}.sig" --bundle "${file}.bundle"
+            else
+              echo "Warning: Skipping non-file: $file"
+            fi
+          done
+        # Check if it's a regex pattern (glob pattern) and find matching files
+        elif [[ -n $(echo "${{ inputs.path }}" | grep -E '*|?') ]]; then
+          matching_files=$(find . -type f -name "${{ inputs.path }}")
+          if [[ -z "$matching_files" ]]; then
+            echo "Error: No files found matching pattern '${{ inputs.path }}'"
+            exit 1
+          fi
+          for file in $matching_files; do
+            echo "Signing file: $file"
+            cosign sign-blob --yes "$file" --output-signature "${file}.sig" --bundle "${file}.bundle"
+          done
+        # Handle single file
+        elif [[ -f "${{ inputs.path }}" ]]; then
+          echo "Signing single file: ${{ inputs.path }}"
+          cosign sign-blob --yes "${{ inputs.path }}" --output-signature "${{ inputs.path }}.sig" --bundle "${{ inputs.path }}.bundle"
+        else
+          echo "Error: '${{ inputs.path }}' is neither a valid file nor a directory."
+          exit 1
+        fi
+
+    # TODO: Upload the signatures and bundle files to the artifact store
