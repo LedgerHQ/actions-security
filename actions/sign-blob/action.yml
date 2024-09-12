@@ -6,6 +6,7 @@ inputs:
     description: 'Path to the artifact to sign'
     required: true
     default: ""
+  
 
 runs:
   using: "composite"
@@ -16,3 +17,4 @@ runs:
       shell: bash
       run: |
         cosign sign-blob ${{ inputs.path }} --bundle cosign.bundle
+    # TODO: Upload the signature to the artifact store
