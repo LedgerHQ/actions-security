@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.1...actions/sign-blob-1.0.2) (2024-09-12)
+
+
+### Bug Fixes
+
+* **sign-blob:** add directory handle ([5e60b47](https://github.com/LedgerHQ/actions-security/commit/5e60b47399b5fe6238ec361b35edb29714247e2c))
+
 ## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.0...actions/sign-blob-1.0.1) (2024-09-12)
 
 
