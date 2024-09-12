@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.7](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.6...actions/sign-blob-1.0.7) (2024-09-12)
+
+
+### Bug Fixes
+
+* **sign-blob:** test another way to get the repo visibilty ([2a918bc](https://github.com/LedgerHQ/actions-security/commit/2a918bcbf1e00690ab360233de1075ed60b7c631))
+
 ## [1.0.6](https://github.com/LedgerHQ/actions-security/compare/actions/sign-blob-1.0.5...actions/sign-blob-1.0.6) (2024-09-12)
 
 
