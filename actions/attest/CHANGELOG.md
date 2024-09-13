@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/LedgerHQ/actions-security/compare/actions/attest-1.0.2...actions/attest-1.0.3) (2024-09-13)
+
+
+### Bug Fixes
+
+* **attest:** spli custom and slsa attestation mode ([3a0d54b](https://github.com/LedgerHQ/actions-security/commit/3a0d54bf690ff7df542fb13720b541efd968d14a))
+
 ## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/attest-1.0.1...actions/attest-1.0.2) (2024-09-13)
 
 
