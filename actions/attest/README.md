@@ -41,6 +41,7 @@ jobs:
 
 | name | description | required | default |
 | --- | --- | --- | --- |
+| `type-slsa` | <p>Generate an attestations bind some subject (a named artifact along with its digest) to a SLSA build provenance predicate using the in-toto format.</p> | `false` | `true` |
 | `subject-path` | <p>Path to the artifact serving as the subject of the attestation. Must specify exactly one of "subject-path" or "subject-digest". May contain a glob pattern or list of paths (total subject count cannot exceed 2500).</p> | `false` | `""` |
 | `subject-digest` | <p>SHA256 digest of the subject for the attestation. Must be in the form "sha256:hex_digest" (e.g. "sha256:abc123…"). Must specify exactly one of "subject-path" or "subject-digest".</p> | `false` | `""` |
 | `subject-name` | <p>Subject name as it should appear in the attestation. Required unless "subject-path" is specified, in which case it will be inferred from the path.</p> | `false` | `""` |

@@ -5,6 +5,10 @@ description: |
   Designed for seamless integration within Ledger's CI/CD pipeline, the `attest` action automates the creation of cryptographic attestations, enhancing the integrity, authenticity, and traceability of your software supply chain. By providing a secure method to verify the origin and build process of your artifacts, it helps safeguard against supply chain attacks and meets compliance requirements for software distribution. 
 
 inputs:
+  type-slsa:
+    description: 'Generate an attestations bind some subject (a named artifact along with its digest) to a SLSA build provenance predicate using the in-toto format.'
+    required: false
+    default: "true"
   subject-path:
     description: 'Path to the artifact serving as the subject of the attestation. Must specify exactly one of "subject-path" or "subject-digest". May contain a glob pattern or list of paths (total subject count cannot exceed 2500).'
     required: false
@@ -26,7 +30,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/attest@v1
+    - name: Generate and sign attestation (SLSA type)
+      uses: actions/attest-build-provenance@v1
+      if: ${{ inputs.type-slsa == 'true' }}
+      with:
+        subject-path: ${{ inputs.subject-path }}
+        subject-digest: ${{ inputs.subject-digest }}
+        subject-name: ${{ inputs.subject-name }}
+        push-to-registry: ${{ inputs.push-to-registry }}
+        show-summary: true
+    - name: Generate and sign attestation (custom type)
+      uses: actions/attest@v1
+      if: ${{ inputs.type-slsa == 'false' }}
       with:
         subject-path: ${{ inputs.subject-path }}
         subject-digest: ${{ inputs.subject-digest }}
