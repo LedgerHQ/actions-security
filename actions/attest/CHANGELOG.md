@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/attest-1.0.1...actions/attest-1.0.2) (2024-09-13)
+
+
+### Bug Fixes
+
+* **attest:** use attest action in direct ([de7d69e](https://github.com/LedgerHQ/actions-security/commit/de7d69e0b97cb33dc47762ba2498d47858084d19))
+
 ## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/attest-1.0.0...actions/attest-1.0.1) (2024-09-10)
 
 
