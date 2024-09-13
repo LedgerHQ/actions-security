@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/sign-container-1.0.0...actions/sign-container-1.0.1) (2024-09-13)
+
+
+### Bug Fixes
+
+* **sign-container:** fix loop for sign container ([aef33c2](https://github.com/LedgerHQ/actions-security/commit/aef33c228a56f5c533d60fc4161f47bba76238d8))
+
 ## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/sign-container-0.1.0...actions/sign-container-1.0.0) (2024-09-13)
 
 
