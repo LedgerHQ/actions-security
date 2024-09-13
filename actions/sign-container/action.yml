@@ -14,7 +14,6 @@ inputs:
     required: true
     default: ""
   
-
 runs:
   using: "composite"
   steps:
