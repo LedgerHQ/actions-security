@@ -28,8 +28,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Sign a blob
-        id: sign-blob
+      - name: Sign a container
+        id: sign-container
         uses: LedgerHQ/actions-security/actions/sign-container@actions/sign-container-1
         with:
           tags: ""
