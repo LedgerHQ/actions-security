@@ -21,6 +21,9 @@ runs:
       uses: sigstore/cosign-installer@v3
     - name: Sign containers images
       shell: bash
+      env:
+        TAGS: ${{ inputs.tags }}
+        DIGEST: ${{ inputs.digest }}
       run: |
           images=""
           for tag in ${TAGS}; do
