@@ -1,4 +1,4 @@
-# Action: sign-blob
+# GitHub Action: `sign-container`
 
 <!-- action-docs-description source="action.yml" -->
 ## Description
@@ -9,12 +9,18 @@ This action is used to sign a container image with a list of tags in keyless mod
 ## Usage
 
 ### Permissions
+
+To enable this action to work properly, ensure the following permissions are set in your workflow:
+
 ```yaml
 permissions:
     id-token: write
 ```
 
 ### Example Workflow
+
+Here's how you can use the `sign-container` action within your workflow:
+
 ```yaml
 jobs:
   release:
@@ -42,8 +48,6 @@ jobs:
 <!-- action-docs-outputs source="action.yml" -->
 
 
-<!-- action-docs-runs source="action.yml" -->
 ## Runs
 
-This action is a `composite` action.
-<!-- action-docs-runs source="action.yml" -->
+This action is a **composite action**, which allows us to combine multiple workflow steps into a single, reusable action. This promotes modularity and simplifies our workflows.
