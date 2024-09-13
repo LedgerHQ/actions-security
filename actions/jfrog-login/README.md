@@ -1,4 +1,3 @@
-
 # GitHub Action: `jfrog-login`
 
 <!-- action-docs-description source="action.yml" -->
