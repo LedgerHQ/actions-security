@@ -3,7 +3,9 @@
 <!-- action-docs-description source="action.yml" -->
 ## Description
 
-This action is used to sign a container image with a list of tags in keyless mode based on Github OIDC token.
+The `sign-container` GitHub Action provides secure, keyless signing of container images with multiple tags using OIDC authentication based on GitHub's OIDC token. This action allows developers to sign container images without manually managing sensitive signing keys, enhancing the trust and integrity of containerized applications.
+
+Designed for seamless integration within Ledger's CI/CD pipeline, the `sign-container` action automates the container signing process, ensuring that container images are securely signed and verifiable. By incorporating secure signing into your container deployment workflow, it helps protect against unauthorized modifications and ensures compliance with container security policies.
 <!-- action-docs-description source="action.yml" -->
 
 ## Usage

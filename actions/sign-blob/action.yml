@@ -1,5 +1,8 @@
 name: "[Ledger Security] Sign blobs"
-description: "This action is used to sign blobs in keyless mode based on Github OIDC token."
+description: |
+   The `sign-blob` GitHub Action enables secure, keyless signing of arbitrary data blobs using OIDC authentication based on GitHub's OIDC token. By eliminating the need to handle sensitive signing keys manually, this action allows developers to sign files, binaries, or other data artifacts securely within the CI/CD pipeline.
+   
+   This action is designed for seamless integration within Ledger's CI/CD workflow, automating the signing process to enhance the security and integrity of your software artifacts. By providing a secure and automated method for signing data, it helps ensure the authenticity and non-repudiation of artifacts distributed through the software supply chain.
 
 inputs:
   path:

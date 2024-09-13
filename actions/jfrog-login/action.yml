@@ -2,6 +2,7 @@ name: "[Ledger Security] JFrog Login"
 author: LedgerHQ
 description: |
   The `jfrog-login` GitHub Action facilitates a secure login to Ledger's JFrog platform, which includes services such as **Artifactory** and **Xray**. By using OIDC authentication, this action ensures secure access to manage artifacts, perform security scans, and interact with the JFrog APIs and CLI without handling sensitive credentials manually.
+  
   This action is designed for seamless integration within Ledger's CI/CD pipeline, allowing developers to securely interact with JFrog services while automating critical parts of the software supply chain.
 
 outputs:

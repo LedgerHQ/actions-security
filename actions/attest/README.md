@@ -3,7 +3,9 @@
 <!-- action-docs-description source="action.yml" -->
 ## Description
 
-This action is used to generate a provenance file and to sign it (attestation in-toto format).
+The `attest` GitHub Action enables the generation and signing of provenance files using the **in-toto** attestation format. Leveraging OIDC authentication for keyless signing, this action securely creates verifiable metadata about your software artifacts without the need to manage sensitive signing keys manually.
+
+Designed for seamless integration within Ledger's CI/CD pipeline, the `attest` action automates the creation of cryptographic attestations, enhancing the integrity, authenticity, and traceability of your software supply chain. By providing a secure method to verify the origin and build process of your artifacts, it helps safeguard against supply chain attacks and meets compliance requirements for software distribution.
 <!-- action-docs-description source="action.yml" -->
 
 ## Usage
