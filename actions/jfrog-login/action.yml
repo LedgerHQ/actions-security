@@ -29,3 +29,13 @@ runs:
       with:
         oidc-provider-name: github-oidc
         oidc-audience: jfrog-github
+    - name: Expose outputs as environment variables
+      run: | 
+        : Expose outputs as environment variables
+        echo "JFROG_USER=${{ steps.setup-jfrog-cli.outputs.oidc-user }}" >> $GITHUB_ENV
+        echo "JFROG_TOKEN=${{ steps.setup-jfrog-cli.outputs.oidc-token }}" >> $GITHUB_ENV
+        echo "JFROG_DOMAIN=${JFROG_DOMAIN}" >> $GITHUB_ENV
+        echo "JFROG_URL=https://${JFROG_DOMAIN}" >> $GITHUB_ENV
+      env:
+        JFROG_DOMAIN: jfrog.ledgerlabs.net
+      shell: bash
