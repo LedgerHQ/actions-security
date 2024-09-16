@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.1.0...actions/jfrog-login-1.2.0) (2024-09-16)
+
+
+### Features
+
+* **login:** expose JFrog domain as jfrog-login output ([#43](https://github.com/LedgerHQ/actions-security/issues/43)) ([359bb12](https://github.com/LedgerHQ/actions-security/commit/359bb12942a2efa6d4694c6854ce300a99382501))
+
 ## [1.1.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.0.0...actions/jfrog-login-1.1.0) (2024-09-04)
 
 
