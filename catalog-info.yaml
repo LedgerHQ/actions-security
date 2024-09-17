@@ -1,0 +1,35 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: actions-security
+  title: Developer GitHub Actions for Supply Chain Security
+  description: Cybersecurity actions for Supply Chain Security for developer
+  tags:
+    - infrastructure
+    - actions
+
+  links:
+    - url: https://ledgerhq.atlassian.net/wiki/spaces/SE/pages/5029232666/DRAFT+LANDING+PAGE+Supply+Chain+Security
+      title: Supply Chain Security Home Page
+      icon: Web
+
+  annotations:
+    backstage.io/code-coverage: enabled
+    backstage.io/linguist: https://github.com/LedgerHQ/actions-security
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: LedgerHQ/actions-security
+    # Ledger specific annotations.
+    ledger.com/code_repository: https://github.com/LedgerHQ/actions-security
+    ledger.com/documentation: https://ledgerhq.atlassian.net/wiki/spaces/SE/pages/4679598229/Cyber+Security+Product+Supply+Chain+Security+for+Developers
+
+  labels:
+    # https://ledgerhq.atlassian.net/wiki/spaces/INFRASD/pages/4355194907/Naming+Convention+for+Code+Metadata#Contains-PII
+    ledger.com/contains_pii: no
+    # https://ledgerhq.atlassian.net/wiki/spaces/INFRASD/pages/4355194907/Naming+Convention+for+Code+Metadata#Donjon-review
+    ledger.com/donjon_review: exempted
+
+spec:
+  type: infra
+  lifecycle: experimental
+  owner: group:team-cybersecurity
+  system: security-automation
