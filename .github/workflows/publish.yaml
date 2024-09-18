@@ -9,7 +9,7 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Publish Markdown to Confluence
-        uses: markdown-confluence/publish@v1 #in case of error, use: markdown-confluence/publish-action@v5
+        uses: markdown-confluence/publish-action@v5
         with:
           confluenceBaseUrl: https://ledgerhq.atlassian.net/
           confluenceParentId: 5036769289
