@@ -13,7 +13,7 @@ jobs:
         with:
           confluenceBaseUrl: https://ledgerhq.atlassian.net/
           confluenceParentId: 5036769289
-          atlassianUserName: ${{ secrets.vanda.illyes }}
+          atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
           atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
           folderToPublish: actions
           contentRoot: /actions
