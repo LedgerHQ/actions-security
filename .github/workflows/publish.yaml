@@ -22,5 +22,5 @@ jobs:
           atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
           atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
           folderToPublish: actions
-          contentRoot: /actions
+          contentRoot: /actions/
           #configFile: .markdown-confluence.json
