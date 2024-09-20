@@ -9,8 +9,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
