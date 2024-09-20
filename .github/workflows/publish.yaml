@@ -17,6 +17,6 @@ jobs:
           confluenceParentId: 5036769289
           atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
           atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
-          folderToPublish: actions
+          folderToPublish: .
           contentRoot: actions/
           #configFile: .markdown-confluence.json
