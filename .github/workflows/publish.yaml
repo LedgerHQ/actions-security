@@ -18,5 +18,5 @@ jobs:
           atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
           atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
           folderToPublish: .
-          contentRoot: actions/jfrog-login/README_jfrog_login.md
+          contentRoot: ['actions/attest/', 'actions/jfrog-login/', 'actions/sign-blob/', 'actions/sign-container/']
           #configFile: .markdown-confluence.json
