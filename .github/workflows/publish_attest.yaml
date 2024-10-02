@@ -1,0 +1,22 @@
+name: Publish to Confluence
+on: push
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Publish Markdown to Confluence
+        uses: markdown-confluence/publish-action@v5
+        with:
+          confluenceBaseUrl: https://ledgerhq.atlassian.net/
+          confluenceParentId: 5036769289
+          atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
+          atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          folderToPublish: .
+          contentRoot: actions/attest/
+          #configFile: .markdown-confluence.json
