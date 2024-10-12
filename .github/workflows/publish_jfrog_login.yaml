@@ -20,3 +20,12 @@ jobs:
           folderToPublish: .
           contentRoot: actions/jfrog-login/
           #configFile: .markdown-confluence.json
+
+      - name: Replace in files
+        uses: richardrigutins/replace-in-files@v2
+        with:
+          files: '../../actions/*.md'
+          search-text: '<!-- action-docs-*'
+          replacement-text: '  '
+          #exclude: 'node_modules/**'
+          encoding: 'utf8'          
