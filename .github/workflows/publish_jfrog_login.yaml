@@ -2,24 +2,19 @@ name: Publish to Confluence
 on: push
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Rename file 
-        run: mv actions/jfrog-login/README_jfrog_login.md actions/jfrog-login/README_jfrog_login_test.md
-
-      #- name: Delete file 
-      #  run: rm -f README_jfrog_login.md
-
   publish:
     runs-on: ubuntu-latest
     steps:
-      #- uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       
+      - name: Rename file 
+        run: mv actions/jfrog-login/README_jfrog_login.md actions/jfrog-login/README_jfrog_login_test.md
+      #- name: Delete file 
+      #  run: rm -f README_jfrog_login.md
+
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
         with:
