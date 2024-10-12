@@ -2,6 +2,16 @@ name: Publish to Confluence
 on: push
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rename file 
+        run: mv README_jfrog_login.md README_jfrog_login_test.md
+
+      #- name: Delete file 
+      #  run: rm -f README_jfrog_login.md
+
   publish:
     runs-on: ubuntu-latest
     steps:
