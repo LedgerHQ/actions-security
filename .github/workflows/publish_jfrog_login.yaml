@@ -24,7 +24,7 @@ jobs:
       - name: Replace in files
         uses: richardrigutins/replace-in-files@v2
         with:
-          files: 'actions/**/*.md'
+          files: 'actions/jfrog-login/README_jfrog_login.md'
           search-text: '<!--*-->'
           replacement-text: 'test test test'
           #exclude: 'node_modules/**'
