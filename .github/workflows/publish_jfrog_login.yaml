@@ -11,12 +11,12 @@ jobs:
           node-version: 20
       
       - name: Rename file readme
-        run: mv actions/jfrog-login/README_jfrog_login.md actions/jfrog-login/README_jfrog_login_test.md
+        run: mv "actions/jfrog-login/*.md" "actions/jfrog-login/*_jfrog_login.md"
       #- name: Delete file 
       #  run: rm -f README_jfrog_login.md
 
-      - name: Rename file changelog
-        run: mv actions/jfrog-login/CHANGELOG.md actions/jfrog-login/CHANGELOG_jfrog_login_test.md
+      #- name: Rename file changelog
+      #  run: mv actions/jfrog-login/CHANGELOG.md actions/jfrog-login/CHANGELOG_jfrog_login_test.md
 
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
