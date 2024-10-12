@@ -11,7 +11,7 @@ jobs:
           node-version: 20
       
       - name: Rename file readme
-        run: mv "actions/jfrog-login/*.md" "actions/jfrog-login/*_jfrog_login_test2.md"
+        run: mv actions/jfrog-login/"*.md" actions/jfrog-login/"*_jfrog_login_test2.md"
       #- name: Delete file 
       #  run: rm -f README_jfrog_login.md
 
