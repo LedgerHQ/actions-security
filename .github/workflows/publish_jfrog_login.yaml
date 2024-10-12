@@ -12,6 +12,7 @@ jobs:
       
       - name: Rename file 
         run: mv actions/jfrog-login/README_jfrog_login.md actions/jfrog-login/README_jfrog_login_test.md
+        run: mv actions/jfrog-login/CHANGELOG.md actions/jfrog-login/CHANGELOG_jfrog_login_test.md
       #- name: Delete file 
       #  run: rm -f README_jfrog_login.md
 
