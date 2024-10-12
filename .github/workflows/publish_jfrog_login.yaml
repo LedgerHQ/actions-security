@@ -24,7 +24,7 @@ jobs:
       - name: Replace in files
         uses: richardrigutins/replace-in-files@v2
         with:
-          files: 'actions/*.md'
+          files: 'actions/*/*.md'
           search-text: '<!-- action-docs-*'
           replacement-text: '  '
           #exclude: 'node_modules/**'
