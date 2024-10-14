@@ -10,8 +10,15 @@ jobs:
         with:
           node-version: 20
       
-      - name: Rename file readme
-        run: mv actions/jfrog-login/"*.md" actions/jfrog-login/"*_jfrog_login_test2.md"
+      - name: Enable extended globbing
+        run: shopt -s extglob
+
+      - name: Rename file
+        run: mv actions/jfrog-login/*.md actions/jfrog-login/*_jfrog_login_test2.md
+
+
+      #- name: Rename file readme
+      #  run: mv actions/jfrog-login/README_jfrog_login.md actions/jfrog-login/README_jfrog_login_test.md  
       #- name: Delete file 
       #  run: rm -f README_jfrog_login.md
 
