@@ -9,6 +9,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Enable extended globbing
+        run: shopt -s extglob          
       
       - name: Rename file
         run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_attest"' \;
