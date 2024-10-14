@@ -11,7 +11,7 @@ jobs:
           node-version: 20
     
       - name: Rename file
-        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "jfrog_login_${f%.md}.md"' \;
+        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_jfrog_login.md"' \;
 
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
@@ -27,7 +27,7 @@ jobs:
       - name: Replace in files
         uses: richardrigutins/replace-in-files@v2
         with:
-          files: 'actions/jfrog-login/README_jfrog_login.md'
+          files: 'actions/jfrog-login/README.md'
           search-text: '<!--*-->'
           replacement-text: 'test test test'
           #exclude: 'node_modules/**'
