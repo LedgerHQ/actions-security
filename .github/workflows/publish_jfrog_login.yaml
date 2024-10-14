@@ -11,7 +11,7 @@ jobs:
           node-version: 20
     
       - name: Rename file
-        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_jfrog_login.md"' \;
+        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "jfrog_login_${f%.md}.md"' \;
 
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
