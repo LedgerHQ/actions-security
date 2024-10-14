@@ -14,7 +14,7 @@ jobs:
         run: shopt -s extglob
 
       - name: Rename file
-        run: mv actions/jfrog-login/*.md actions/jfrog-login/*_jfrog_login_test2.md
+        run: find actions/jfrog-login/ -maxdepth 1 -type f -name "*.md" mv "*.md" "*_jfrog_login_test2.md"
 
 
       #- name: Rename file readme
