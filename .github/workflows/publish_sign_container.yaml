@@ -8,10 +8,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Enable extended globbing
-        run: shopt -s extglob          
+          node-version: 20 
       
       - name: Rename file
         run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_sign_container.md"' \;
