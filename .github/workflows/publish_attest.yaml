@@ -14,7 +14,7 @@ jobs:
         run: shopt -s extglob          
       
       - name: Rename file
-        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_attest"' \;
+        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_attest.md"' \;
 
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5

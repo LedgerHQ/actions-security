@@ -14,7 +14,7 @@ jobs:
         run: shopt -s extglob
 
       - name: Rename file
-        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_jfrog_login"' \;
+        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_jfrog_login.md"' \;
 
       #- name: Rename file readme
       #  run: mv actions/jfrog-login/README_jfrog_login.md actions/jfrog-login/README_jfrog_login_test.md  
@@ -28,7 +28,7 @@ jobs:
           confluenceParentId: 5036769289
           atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
           atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
-          folderToPublish: actions
+          folderToPublish: .
           contentRoot: actions/jfrog-login/
           #configFile: .markdown-confluence.json
 
