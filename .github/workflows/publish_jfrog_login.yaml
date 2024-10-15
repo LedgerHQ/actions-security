@@ -24,6 +24,9 @@ jobs:
           contentRoot: actions/jfrog-login/
           #configFile: .markdown-confluence.json
 
+      - name: Install sed
+        run: sudo apt-get install sed
+
       - name: Replace string in files TEST
         run: sed -i 's/secure/test/g' README_jfrog_login.md           
 
