@@ -25,7 +25,7 @@ jobs:
           #configFile: .markdown-confluence.json
 
       - name: Replace string in files 1
-        run: sed -i 's/<!--.*-->/test/g' README_jfrog_login.md         
+        run: sed -i 's/<!--.-->/test/g' README_jfrog_login.md         
 
       #- name: Replace string in files 2
       #  uses: richardrigutins/replace-in-files@v2
