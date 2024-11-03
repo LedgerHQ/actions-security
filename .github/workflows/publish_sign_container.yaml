@@ -10,8 +10,11 @@ jobs:
         with:
           node-version: 20 
       
-      - name: Rename file
-        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_sign_container.md"' \;
+      - name: Rename all .md files
+        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "$(dirname "$f")/sign_container_$(basename "$f")"' \;
+
+      - name: Replace comments with a space
+        run: find . -type f -name "*.md" -exec sed -i 's/<!--.*-->/ /g' {} +  
 
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
