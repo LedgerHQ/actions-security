@@ -16,6 +16,9 @@ jobs:
       - name: Replace comments with a space
         run: find . -type f -name "*.md" -exec sed -i 's/<!--.*-->/ /g' {} +     
 
+      - name: Remove <p> and </p> tags
+        run: find . -type f -name "*.md" -exec sed -i 's/<\/\?p>//g' {} + 
+
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
         with:
