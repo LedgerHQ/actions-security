@@ -11,7 +11,8 @@ jobs:
           node-version: 20
     
       - name: Rename all .md files
-        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_jfrog_login.md"' \;
+        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "$(dirname "$f")/jfrog_login_$(basename "$f")"' \;
+        #run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_jfrog_login.md"' \;
 
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
@@ -23,9 +24,6 @@ jobs:
           folderToPublish: .
           contentRoot: actions/jfrog-login/
           #configFile: .markdown-confluence.json
-
-      - name: Install sed
-        run: sudo apt-get install sed
 
       - name: Replace string in files TEST
         run: sed -i 's/secure/test/g' README_jfrog_login.md           
