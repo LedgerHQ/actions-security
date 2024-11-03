@@ -13,6 +13,9 @@ jobs:
       - name: Rename all .md files
         run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "$(dirname "$f")/jfrog_login_$(basename "$f")"' \;
 
+      - name: Replace comments with a space
+        run: find . -type f -name "*.md" -exec sed -i 's/<!--.*-->/ /g' {} +     
+
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
         with:
@@ -23,6 +26,3 @@ jobs:
           folderToPublish: .
           contentRoot: actions/jfrog-login/
           #configFile: .markdown-confluence.json
-
-      - name: Replace comments with a space
-        run: find . -type f -name "*.md" -exec sed -i 's/<!--.*-->/ /g' {} +     
