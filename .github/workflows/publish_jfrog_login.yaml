@@ -12,7 +12,6 @@ jobs:
     
       - name: Rename all .md files
         run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "$(dirname "$f")/jfrog_login_$(basename "$f")"' \;
-        #run: find . -depth -name "*.md" -exec sh -c 'f="{}"; mv -- "$f" "${f%.md}_jfrog_login.md"' \;
 
       - name: Publish Markdown to Confluence
         uses: markdown-confluence/publish-action@v5
@@ -25,17 +24,5 @@ jobs:
           contentRoot: actions/jfrog-login/
           #configFile: .markdown-confluence.json
 
-      - name: Replace string in files TEST
-        run: sed -i 's/secure/test/g' README_jfrog_login.md           
-
-      #- name: Replace string in files 1
-      #  run: sed -i 's/<!--.*-->/test/g' README_jfrog_login.md         
-
-      #- name: Replace string in files 2
-      #  uses: richardrigutins/replace-in-files@v2
-      #  with:
-      #    files: 'actions/jfrog-login/README_jfrog_login.md'
-      #    search-text: '<!--*-->'
-      #    replacement-text: 'test test test'
-      #    exclude: 'node_modules/**'
-      #    encoding: 'utf8'          
+      - name: Replace comments with a space
+        run: find . -type f -name "*.md" -exec sed -i 's/<!--.*-->/ /g' {} +     
