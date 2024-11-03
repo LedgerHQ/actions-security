@@ -11,7 +11,7 @@ jobs:
           node-version: 20 
       
       - name: Rename all .md files
-        run: ffind . -depth -name "*.md" -exec sh -c 'f="{}"; d="$(basename "$(dirname "$f")")"; mv -- "$f" "$(dirname "$f")/${d}_$(basename "$f")"' \;
+        run: find . -depth -name "*.md" -exec sh -c 'f="{}"; d="$(basename "$(dirname "$f")")"; mv -- "$f" "$(dirname "$f")/${d}_$(basename "$f")"' \;
 
       - name: Replace comments with a space
         run: find . -type f -name "*.md" -exec sed -i 's/<!--.*-->/ /g' {} +  
