@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/sign-container-1.0.1...actions/sign-container-1.0.2) (2024-11-07)
+
+
+### Bug Fixes
+
+* **sign-container:** do not run the action in case of private repository to not leak metadata ([#48](https://github.com/LedgerHQ/actions-security/issues/48)) ([655e6ae](https://github.com/LedgerHQ/actions-security/commit/655e6ae72206d70b2f041f21e97f3edf69ff22d9))
+
 ## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/sign-container-1.0.0...actions/sign-container-1.0.1) (2024-09-13)
 
 
