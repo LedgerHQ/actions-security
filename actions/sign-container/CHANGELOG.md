@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/LedgerHQ/actions-security/compare/actions/sign-container-1.0.2...actions/sign-container-1.0.3) (2024-11-07)
+
+
+### Bug Fixes
+
+* **sign-container:** avoid running signing step if public ([#50](https://github.com/LedgerHQ/actions-security/issues/50)) ([ce43304](https://github.com/LedgerHQ/actions-security/commit/ce43304aeb67bad773186a4b3fa49ff6b320767e))
+
 ## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/sign-container-1.0.1...actions/sign-container-1.0.2) (2024-11-07)
 
 
