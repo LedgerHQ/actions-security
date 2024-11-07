@@ -22,8 +22,10 @@ runs:
       shell: bash
       run: echo "This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
     - name: Install Cosign
+      if: ${{ github.event.repository.visibility == 'public' }}
       uses: sigstore/cosign-installer@v3
     - name: Sign containers images
+      if: ${{ github.event.repository.visibility == 'public' }}
       shell: bash
       env:
         TAGS: ${{ inputs.tags }}
