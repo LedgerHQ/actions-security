@@ -12,6 +12,11 @@ runs:
         if: ${{ github.event.repository.visibility != 'public' }}
         shell: bash
         run: echo "::error This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
+      - name: Set GitHub Path
+        run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+        shell: bash
+        env:
+          GITHUB_ACTION_PATH: ${{ github.action_path }}
       - name: Auto-Detect - Package details
         id: package-details
         shell: bash
@@ -58,7 +63,7 @@ runs:
           GITHUB_BASE_REF: ${{ github.base_ref }}
           GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
           BUILD_INVOCATION_ID: ${{ github.run_id }}-${{ github.run_attempt }}
-        run: ./slsa-github-generator-nodejs-predicate.sh
+        run: slsa-github-generator-nodejs-predicate.sh
       - name: Generate the SLSA layout
         shell: bash
         env:
@@ -67,7 +72,7 @@ runs:
           PACKAGE_VERSION: ${{ steps.package-details.outputs.PACKAGE_VERSION }}
           PACKAGE_INTEGRITY: ${{ steps.package-details.outputs.PACKAGE_INTEGRITY }}
           PACKAGE_FILENAME: ${{ steps.package-details.outputs.PACKAGE_FILENAME }}
-        run: ./slsa-github-generator-nodejs-layout.sh
+        run: slsa-github-generator-nodejs-layout.sh
       - name: Generate the attestation
         uses: slsa-framework/slsa-github-generator/.github/actions/generate-attestations@v2.0.0
         with:
