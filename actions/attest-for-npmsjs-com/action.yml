@@ -95,7 +95,30 @@ runs:
             echo "Error: No attestation signed files found in the ./attestations-signed directory."
             exit 1
           fi
-          echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> $GITHUB_OUTPUT      
+          echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> $GITHUB_OUTPUT
+      - name: Upload the attestation to Github Attestation API
+        shell: bash
+        env:
+          ATTESTATION_PATH: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
+        run: |
+          cat $ATTESTATION_PATH
+          response=$(curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/${{ github.repository }}/attestations \
+          -d "{\"bundle\": \"$(cat $ATTESTATION_PATH)\"}" \
+          -w "%{http_code}" -o response.json)
+
+          http_code=$(jq -r '.status' response.json)
+          if [ "$http_code" -ne 201 ]; then
+            echo "Error: Failed to upload attestation to GitHub API. HTTP status code: $http_code"
+            cat response.json
+            exit 1
+          fi
+          cat response.json
+
 
       
 
