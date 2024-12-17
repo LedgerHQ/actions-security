@@ -100,44 +100,32 @@ runs:
             exit 1
           fi
           echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> $GITHUB_OUTPUT
-      - name: Upload the attestation to Github Attestation API
-        id: upload-attestation
+      - name: Upload Attestation to the Github API
+        uses: actions/github-script@v6
         env:
           ATTESTATION_PATH: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
-          GITHUB_TOKEN: ${{ inputs.github_token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        uses: actions/github-script@v6
         with:
           script: |
-            const fetch = require('node-fetch');
             const fs = require('fs');
+            const attestationPath = process.env.ATTESTATION_PATH;
+            const attestationContent = fs.readFileSync(attestationPath, 'utf8');
+            const attestation = JSON.parse(attestationContent);
+            const [owner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
 
-            async function uploadAttestation(attestationPath) {
-              try {
-                const attestationContent = fs.readFileSync(attestationPath, 'utf8');
-                const attestation = JSON.parse(attestationContent);
-                const [owner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
-
-                const response = await fetch(`https://api.github.com/repos/${owner}/${repoName}/attestations`, {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `token ${process.env.GITHUB_TOKEN}`,
-                    'Content-Type': 'application/json',
-                    'X-GitHub-Api-Version': '2022-11-28'
-                  },
-                  body: JSON.stringify({ bundle: attestationContent })  // Stringify once here
-                });
-
-                if (!response.ok) {
-                  throw new Error(`Failed to upload attestation to GitHub API. HTTP status code: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Attestation uploaded successfully:', data);
-              } catch (error) {
-                console.error('Error uploading attestation:', error.message);
-                // Additional logging for debugging
-                console.error('Response status:', error.response?.status);
-                console.error('Response body:', error.response?.body);
+            const response = await github.request('POST /repos/{owner}/{repo}/attestations', {
+              owner: owner,
+              repo: repoName,
+              headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+              },
+              data: {
+                bundle: attestation
               }
+            });
+
+            if (response.status !== 201) {
+              throw new Error(`Failed to upload attestation to GitHub API. HTTP status code: ${response.status}`);
             }
+
+            console.log('Attestation uploaded successfully:', response.data);
