@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.2.0...actions/jfrog-login-1.3.0) (2024-12-17)
+
+
+### Features
+
+* **jfrog-login:** add jfrog orange oidc ([#53](https://github.com/LedgerHQ/actions-security/issues/53)) ([456d2a1](https://github.com/LedgerHQ/actions-security/commit/456d2a1303125575ef72dc223b1a9d45fb84980f))
+
 ## [1.2.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.1.0...actions/jfrog-login-1.2.0) (2024-09-16)
 
 
