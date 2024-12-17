@@ -6,7 +6,7 @@ description: |
   This action is designed for seamless integration within Ledger's CI/CD pipeline, allowing developers to securely interact with JFrog services while automating critical parts of the software supply chain.
 
 inputs:
-  jf_url:
+  jfrog-url:
     description: "Base URL of the JFrog platform to be used for API/CLI operations. Defaults to Ledger's JFrog URL if not specified."
     required: false
     default: "https://jfrog.ledgerlabs.net"
@@ -31,7 +31,7 @@ runs:
   - uses: jfrog/setup-jfrog-cli@v4
     id: setup-jfrog-cli
     env:
-      JF_URL: ${{ inputs.jf_url }}
+      JF_URL: ${{ inputs.jfrog-url }}
     with:
       oidc-provider-name: github-oidc
       oidc-audience: jfrog-github
@@ -39,10 +39,10 @@ runs:
     id: expose-outputs
     run: |
       : Expose outputs as environment variables
-      JFROG_DOMAIN=$(echo "${{ inputs.jf_url }}" | awk -F[/:] '{print $4}')
+      JFROG_DOMAIN=$(echo "${{ inputs.jfrog-url }}" | awk -F[/:] '{print $4}')
       echo "JFROG_DOMAIN=$JFROG_DOMAIN" >> $GITHUB_ENV
       echo "::set-output name=jfrog-domain::$JFROG_DOMAIN"
       echo "JFROG_USER=${{ steps.setup-jfrog-cli.outputs.oidc-user }}" >> $GITHUB_ENV
       echo "JFROG_TOKEN=${{ steps.setup-jfrog-cli.outputs.oidc-token }}" >> $GITHUB_ENV
-      echo "JFROG_URL=${{ inputs.jf_url }}" >> $GITHUB_ENV
+      echo "JFROG_URL=${{ inputs.jfrog-url }}" >> $GITHUB_ENV
     shell: bash
