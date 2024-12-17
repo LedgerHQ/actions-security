@@ -129,11 +129,7 @@ runs:
                 authorization: `Bearer ${token}`,
                 'X-GitHub-Api-Version': '2022-11-28'
               },
-              options: {
-                request : {
-                  bundle: attestation
-                }
-              }
+              bundle: attestation
             });
 
             if (response.status !== 201) {
