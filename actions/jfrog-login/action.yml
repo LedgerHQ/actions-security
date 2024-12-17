@@ -41,7 +41,7 @@ runs:
       : Expose outputs as environment variables
       JFROG_DOMAIN=$(echo "${{ inputs.jfrog-url }}" | awk -F[/:] '{print $4}')
       echo "JFROG_DOMAIN=$JFROG_DOMAIN" >> $GITHUB_ENV
-      echo "::set-output name=jfrog-domain::$JFROG_DOMAIN"
+      echo "JFROG_DOMAIN=$JFROG_DOMAIN" >> $GITHUB_OUTPUT
       echo "JFROG_USER=${{ steps.setup-jfrog-cli.outputs.oidc-user }}" >> $GITHUB_ENV
       echo "JFROG_TOKEN=${{ steps.setup-jfrog-cli.outputs.oidc-token }}" >> $GITHUB_ENV
       echo "JFROG_URL=${{ inputs.jfrog-url }}" >> $GITHUB_ENV
