@@ -2,8 +2,14 @@ name: "[Ledger Security] JFrog Login"
 author: LedgerHQ
 description: |
   The `jfrog-login` GitHub Action facilitates a secure login to Ledger's JFrog platform, which includes services such as **Artifactory** and **Xray**. By using OIDC authentication, this action ensures secure access to manage artifacts, perform security scans, and interact with the JFrog APIs and CLI without handling sensitive credentials manually.
-  
+
   This action is designed for seamless integration within Ledger's CI/CD pipeline, allowing developers to securely interact with JFrog services while automating critical parts of the software supply chain.
+
+inputs:
+  jfrog-url:
+    description: "Base URL of the JFrog platform to be used for API/CLI operations. Defaults to Ledger's JFrog URL if not specified."
+    required: false
+    default: "https://jfrog.ledgerlabs.net"
 
 outputs:
   oidc-token:
@@ -14,28 +20,29 @@ outputs:
     value: ${{ steps.setup-jfrog-cli.outputs.oidc-user }}
   jfrog-url:
     description: "Base URL of Ledger's JFrog platform to be used for subsequent API/CLI operations."
-    value: "https://jfrog.ledgerlabs.net"
+    value: ${{ inputs.jf_url }}
   jfrog-domain:
     description: "Base domain of Ledger's JFrog platform to be used for subsequent API/CLI operations."
-    value: "jfrog.ledgerlabs.net"
+    value: ${{steps.expose-outputs.outputs.jfrog-domain }}
 
 runs:
   using: "composite"
   steps:
-    - uses: jfrog/setup-jfrog-cli@v4
-      id: setup-jfrog-cli
-      env:
-        JF_URL: "https://jfrog.ledgerlabs.net"
-      with:
-        oidc-provider-name: github-oidc
-        oidc-audience: jfrog-github
-    - name: Expose outputs as environment variables
-      run: | 
-        : Expose outputs as environment variables
-        echo "JFROG_USER=${{ steps.setup-jfrog-cli.outputs.oidc-user }}" >> $GITHUB_ENV
-        echo "JFROG_TOKEN=${{ steps.setup-jfrog-cli.outputs.oidc-token }}" >> $GITHUB_ENV
-        echo "JFROG_DOMAIN=${JFROG_DOMAIN}" >> $GITHUB_ENV
-        echo "JFROG_URL=https://${JFROG_DOMAIN}" >> $GITHUB_ENV
-      env:
-        JFROG_DOMAIN: jfrog.ledgerlabs.net
-      shell: bash
+  - uses: jfrog/setup-jfrog-cli@v4
+    id: setup-jfrog-cli
+    env:
+      JF_URL: ${{ inputs.jfrog-url }}
+    with:
+      oidc-provider-name: github-oidc
+      oidc-audience: jfrog-github
+  - name: Expose outputs as environment variables
+    id: expose-outputs
+    run: |
+      : Expose outputs as environment variables
+      JFROG_DOMAIN=$(echo "${{ inputs.jfrog-url }}" | awk -F[/:] '{print $4}')
+      echo "JFROG_DOMAIN=$JFROG_DOMAIN" >> $GITHUB_ENV
+      echo "JFROG_DOMAIN=$JFROG_DOMAIN" >> $GITHUB_OUTPUT
+      echo "JFROG_USER=${{ steps.setup-jfrog-cli.outputs.oidc-user }}" >> $GITHUB_ENV
+      echo "JFROG_TOKEN=${{ steps.setup-jfrog-cli.outputs.oidc-token }}" >> $GITHUB_ENV
+      echo "JFROG_URL=${{ inputs.jfrog-url }}" >> $GITHUB_ENV
+    shell: bash
