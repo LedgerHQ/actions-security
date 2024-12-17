@@ -15,7 +15,9 @@ runs:
       - name: Check if repository is public (signature are leaking private information)
         if: ${{ github.event.repository.visibility != 'public' }}
         shell: bash
-        run: echo "::error This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
+        run: |
+          echo "::error This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
+          exit 1
       - name: Set GitHub Path
         run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
         shell: bash
