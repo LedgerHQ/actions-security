@@ -118,7 +118,7 @@ runs:
               throw new Error(`Attestation file not found at path: ${path}`);
             }
 
-            const attestation = fs.readFileSync(path, 'utf8');
+            const attestation = JSON.stringify(fs.readFileSync(path, 'utf8'));
             const [owner, repoName] = repo.split('/');
 
             const response = await github.request('POST /repos/{owner}/{repo}/attestations', {
