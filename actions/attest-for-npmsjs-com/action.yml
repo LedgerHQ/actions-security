@@ -27,7 +27,11 @@ runs:
         id: package-details
         shell: bash
         run: |
-          PACKAGE_PATH=$(ls -1 *.tgz | head -n 1) # To be change with the action as input
+          if [ -f "${{ inputs.subject-path }}" ]; then
+            PACKAGE_PATH=${{ inputs.subject-path }}
+          else
+            PACKAGE_PATH=$(ls -1 ${{ inputs.subject-path }}/*.tgz | head -n 1)
+          fi
 
           pack_json=$(npm pack $PACKAGE_PATH --json | tee pack.json | jq -c)
           jq <pack.json
