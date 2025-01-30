@@ -34,6 +34,13 @@ jobs:
         id: jfrog-login
         uses: LedgerHQ/actions-security/actions/jfrog-login@actions/jfrog-login-1
 ```
+<!-- action-docs-inputs source="action.yml" -->
+## Inputs
+
+| name | description |
+| --- | --- |
+| `jfrog-url` | <p>Base URL of Ledger's JFrog platform to be used for subsequent API/CLI operations. Default `https://jfrog.ledgerlabs.net`</p> |
+<!-- action-docs-inputs source="action.yml" -->
 
 <!-- action-docs-outputs source="action.yml" -->
 ## Outputs
