@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.3.0...actions/jfrog-login-1.4.0) (2025-01-30)
+
+
+### Features
+
+* **jfrog-login:** doc jfrog-url inputs ([#55](https://github.com/LedgerHQ/actions-security/issues/55)) ([df8fc50](https://github.com/LedgerHQ/actions-security/commit/df8fc506cc6f18682a6a9ad85fa28e769e77cf8e))
+
 ## [1.3.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.2.0...actions/jfrog-login-1.3.0) (2024-12-17)
 
 
