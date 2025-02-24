@@ -28,6 +28,17 @@ outputs:
 runs:
   using: "composite"
   steps:
+  - name: Check if JFrog URL is accesible
+    run: |
+      http_code=$(curl -s -o /dev/null -w "%{http_code}" "${{ inputs.jfrog-url }}")
+      if [ "$http_code" -eq 403 ]; then
+        echo "::error title=JFrog instance is not accesible::The JFrog instance is behind a whitelist. Please ensure you use a whitelisted Github Runner (Ledger internal runner)"
+        exit 1
+      elif [ "$http_code" -ne 200 ]; then
+        echo "::error title=JFrog instance is not accesible::JFrog URL '${{ inputs.jfrog-url }}'returned status code ${http_code}"
+        exit 1
+      fi
+    shell: bash
   - uses: jfrog/setup-jfrog-cli@v4
     id: setup-jfrog-cli
     env:
