@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.3.0...actions/jfrog-login-1.4.0) (2025-02-24)
+
+
+### Features
+
+* **jfrog-login:** add check if jfrog is not accesible ([#57](https://github.com/LedgerHQ/actions-security/issues/57)) ([e8ffa86](https://github.com/LedgerHQ/actions-security/commit/e8ffa867237c58a3cd185ee2b3213b15a2e5ed01))
+
 ## [1.3.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.2.0...actions/jfrog-login-1.3.0) (2024-12-17)
 
 
