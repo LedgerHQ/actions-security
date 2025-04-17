@@ -52,7 +52,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Security
-
-If you discover a security vulnerability within this project, please see our [security policy](/.github/SECURITY.md) for information on how to report it.
