@@ -9,19 +9,22 @@ inputs:
     description: 'Path to the artifact, directory, or glob pattern to match files for signing'
     required: true
     default: ""
+  allow_private:
+    description: 'If set to "true", will sign even if the repo is private'
+    default: "false"
 
 runs:
   using: "composite"
   steps:
     - name: Check if repository is public (signature are leaking private information)
-      if: ${{ github.event.repository.visibility != 'public' }}
+      if: ${{ github.event.repository.visibility != 'public' && inputs.allow_private != 'true' }}
       shell: bash
       run: echo "This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
     - name: Install Cosign
-      if: ${{ github.event.repository.visibility == 'public' }}
+      if: ${{ github.event.repository.visibility == 'public' || inputs.allow_private == 'true' }}
       uses: sigstore/cosign-installer@v3
     - name: Sign Blobs
-      if: ${{ github.event.repository.visibility == 'public' }}
+      if: ${{ github.event.repository.visibility == 'public' || inputs.allow_private == 'true' }}
       shell: python
       run: |
         import os
