@@ -21,6 +21,8 @@ permissions:
 
 This grants the action permission to generate the OIDC token required for authentication with JFrog.
 
+Also ensure to use one of `ledgerhq` runners. Your repo need to be private to use it.
+
 ### Example Workflow
 
 Here's how you can use the `jfrog-login` action within your workflow:
@@ -28,7 +30,7 @@ Here's how you can use the `jfrog-login` action within your workflow:
 ```yaml
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ledgerhq-shared-small
     steps:
       - name: Login to JFrog Ledger
         id: jfrog-login
