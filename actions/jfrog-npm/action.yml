@@ -25,7 +25,7 @@ inputs:
     required: false
     default: "false"
   minimum-release-age:
-    description: "We can set a delay to avoid installing newly published packages. This applies to all dependencies, including transitive ones. For example, pnpm v10.16 introduced the minimumReleaseAge option: https://pnpm.io/settings#minimumreleaseage, which defines the minimum number of minutes that must pass after a version is published before pnpm will install it. If minimumReleaseAge is set to 1440, then pnpm will not install a version that was published less than 24 hours ago."
+    description: "Minimum age in minutes required for packages before installation. Helps avoid installing newly published packages for security."
     required: false
     default: "false"
 
