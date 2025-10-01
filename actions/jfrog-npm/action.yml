@@ -15,7 +15,7 @@ inputs:
   provenance:
     description: "When publishing from a supported cloud CI/CD system, the package will be publicly linked to where it was built and published from."
     required: true
-    default: "true"
+    default: "false"
   ignore-scripts:
     description: "If true, npm does not run lifecycle scripts specified in package.json files."
     required: false
