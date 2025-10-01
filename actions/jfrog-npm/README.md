@@ -37,7 +37,7 @@ jobs:
         id: jfrog-npm
         uses: LedgerHQ/actions-security/actions/jfrog-npm@actions/jfrog-npm-1
         with:
-          token: ${{ steps.id.oidc-token }}
+          token: ${{ steps.jfrog-login.outputs.oidc-token }}
           registry: jfrog.ledgerlabs.net/artifactory/api/npm/<jfrog-repo>
           ignore-scripts: 'true'
 ```
