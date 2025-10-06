@@ -18,6 +18,14 @@ inputs:
   policy_docker:
     description: 'Policy to use for the Docker scan'
     default: ""
+  wiz_client_id:
+    description: 'Wiz API client ID for authentication'
+    required: true
+    default: ""
+  wiz_client_secret:
+    description: 'Wiz API client secret for authentication'
+    required: true
+    default: ""
     
 runs:
   using: "composite"
@@ -28,10 +36,7 @@ runs:
 
     - name: Authenticate to Wiz
       shell: bash
-      run: ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
-      env:
-        WIZ_CLIENT_ID: ${{ vars.WIZ_CODE_CLIENT_ID }}
-        WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CODE_CLIENT_SECRET }}
+      run: ./wizcli auth --id "${{ inputs.wiz_client_id }}" --secret "${{ inputs.wiz_client_secret }}"
 
     - name: Validate scan configuration
       shell: bash
