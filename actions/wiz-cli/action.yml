@@ -53,22 +53,22 @@ runs:
       shell: bash
       run: |
         SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
-        CMD="./wizcli iac scan --path ${{ inputs.iac_path }} --discovered-resources --name $SCAN_NAME"
         if [[ -n "${{ inputs.policy_iac }}" ]]; then
-          CMD="$CMD --policy ${{ inputs.policy_iac }}"
+          ./wizcli iac scan --path "${{ inputs.iac_path }}" --discovered-resources --name "$SCAN_NAME" --policy "${{ inputs.policy_iac }}"
+        else
+          ./wizcli iac scan --path "${{ inputs.iac_path }}" --discovered-resources --name "$SCAN_NAME"
         fi
-        eval $CMD
 
     - name: Run wiz-cli docker image scan
       if: ${{ inputs.docker_tags != '' }}
       shell: bash
       run: |
         SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
-        CMD="./wizcli docker scan --image ${{ inputs.docker_tags }} --name $SCAN_NAME"
         if [[ -n "${{ inputs.policy_docker }}" ]]; then
-          CMD="$CMD --policy ${{ inputs.policy_docker }}"
+          ./wizcli docker scan --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME" --policy "${{ inputs.policy_docker }}"
+        else
+          ./wizcli docker scan --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME"
         fi
-        eval $CMD
 
     - name: Fetch digest of Docker image for Graph enrichment
       if: ${{ inputs.docker_tags != '' }}
