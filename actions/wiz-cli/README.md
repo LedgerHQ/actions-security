@@ -16,8 +16,8 @@ Designed for seamless integration within Ledger's CI/CD pipeline, the `wiz-cli` 
 | `policy_iac` | <p>Policy to use for the IaC scan</p> | `false` | `""` |
 | `docker_tags` | <p>List of tags to scan (based on the output of the docker/metadata-action)</p> | `false` | `""` |
 | `policy_docker` | <p>Policy to use for the Docker scan</p> | `false` | `""` |
-| `wiz_client_id` | <p>Wiz API client ID for authentication</p> | `false` | `""` |
-| `wiz_client_secret` | <p>Wiz API client secret for authentication</p> | `false` | `""` |
+| `wiz_client_id` | <p>Wiz API client ID for authentication</p> | `true` | `""` |
+| `wiz_client_secret` | <p>Wiz API client secret for authentication</p> | `true` | `""` |
 <!-- action-docs-inputs source="action.yml" -->
 
 <!-- action-docs-outputs source="action.yml" -->
@@ -30,7 +30,7 @@ Designed for seamless integration within Ledger's CI/CD pipeline, the `wiz-cli` 
 
 ```yaml
 - name: Wiz IaC Scan
-  uses: LedgerHQ/actions-security/feat-wiz-cli-init/actions/wiz-cli@feat-wiz-cli-init
+  uses: LedgerHQ/actions-security/feat-wiz-cli-init/actions/wiz-cli@actions/wiz-cli-1
   with:
     iac_path: "terraform/"
     policy_iac: "iac-security-policy"
@@ -42,7 +42,7 @@ Designed for seamless integration within Ledger's CI/CD pipeline, the `wiz-cli` 
 
 ```yaml
 - name: Wiz Docker Scan
-  uses: LedgerHQ/actions-security/feat-wiz-cli-init/actions/wiz-cli@feat-wiz-cli-init
+  uses: LedgerHQ/actions-security/feat-wiz-cli-init/actions/wiz-cli@actions/wiz-cli-1
   with:
     docker_tags: "my-image:latest,my-image:v1.0.0"
     policy_docker: "container-security-policy"
@@ -54,7 +54,7 @@ Designed for seamless integration within Ledger's CI/CD pipeline, the `wiz-cli` 
 
 ```yaml
 - name: Wiz Security Scan
-  uses: LedgerHQ/actions-security/feat-wiz-cli-init/actions/wiz-cli@feat-wiz-cli-init
+  uses: LedgerHQ/actions-security/feat-wiz-cli-init/actions/wiz-cli@actions/wiz-cli-1
   with:
     iac_path: "terraform/"
     policy_iac: "iac-security-policy"

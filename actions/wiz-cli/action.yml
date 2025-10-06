@@ -71,4 +71,4 @@ runs:
       shell: bash
       run: |
         SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
-        ./wizcli docker tag --image "${{ inputs.docker_tags }}" --name $SCAN_NAME
+        ./wizcli docker tag --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME"
