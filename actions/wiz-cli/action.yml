@@ -21,11 +21,9 @@ inputs:
   wiz_client_id:
     description: 'Wiz API client ID for authentication'
     required: true
-    default: ""
   wiz_client_secret:
     description: 'Wiz API client secret for authentication'
     required: true
-    default: ""
     
 runs:
   using: "composite"
