@@ -8,19 +8,15 @@ description: |
 inputs:
   iac_path:
     description: 'Path to the artifact, directory, or glob pattern to match files for IaC scan'
-    required: true
     default: ""
   policy_iac:
     description: 'Policy to use for the IaC scan'
-    required: true
     default: ""
   docker_tags:
     description: 'List of tags to scan (based on the output of the docker/metadata-action)'
-    required: true
     default: ""
   policy_docker:
     description: 'Policy to use for the Docker scan'
-    required: true
     default: ""
     
 runs:
@@ -75,4 +71,4 @@ runs:
       shell: bash
       run: |
         SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
-        ./wizcli docker tag --image ${{ inputs.docker_tags }} --name $SCAN_NAME
+        ./wizcli docker tag --image "${{ inputs.docker_tags }}" --name $SCAN_NAME
