@@ -61,7 +61,7 @@ defined in jfrog.
 | ignore-scripts      | `false` | false    | Disable the automatic run of lifecycle scripts like `install`, `postinstall`, and others.            |
 | omit                | `false` | false    | Disable the installation of certain types of packages. e.g.: `dev` will not install devDependencies. |
 | minimum-release-age | `false` | false    | Require packages to be older than the provided value in minutes.                                     |
-| auto-install-peers  | false   | false    | PNPM autoInstallPeers configuration                                                                  |
+| auto-install-peers  | false   | false    | pnpm option to automatically install peer dependencies                                               |
 
 <!-- markdownlint-enable MD013 -->
 <!-- action-docs-inputs source="action.yml" -->
