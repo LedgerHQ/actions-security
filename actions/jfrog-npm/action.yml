@@ -29,7 +29,7 @@ inputs:
     required: false
     default: "false"
   auto-install-peers:
-    description: "pnpm option to disable peer installation"
+    description: "pnpm option to automatically install peer dependencies"
     required: false
     default: "false"
 
