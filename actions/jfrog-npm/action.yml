@@ -28,6 +28,10 @@ inputs:
     description: "Minimum age in minutes required for packages before installation. Helps avoid installing newly published packages for security."
     required: false
     default: "false"
+  auto-install-peers:
+    description: "pnpm option to automatically install peer dependencies"
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -79,4 +83,13 @@ runs:
       run: |
         cat << EOF | tee -a .npmrc
         minimum-release-age=${INPUTS_MINIMUM_RELEASE_AGE}
+        EOF
+
+    - name: Toggle autoInstallPeers
+      shell: bash
+      env:
+        INPUTS_AUTO_INSTALL_PEERS: ${{inputs.auto-install-peers}}
+      run: |
+        cat << EOF | tee -a .npmrc
+        auto-install-peers=${INPUTS_AUTO_INSTALL_PEERS}
         EOF
