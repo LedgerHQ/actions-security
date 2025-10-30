@@ -1,0 +1,22 @@
+configVersion: 1
+name: actions-security
+id: ari:cloud:compass:5576c6af-2aa6-451e-b92d-9c02363b46fa:component/4640d974-47c0-4323-b441-637e6eb4f752/bdb8fc83-2c2b-4785-bea6-ec587e596dbd
+description: Cybersecurity actions for Supply Chain Security for developer
+typeId: INFRA
+ownerId: null
+fields:
+  lifecycle: experimental
+  tier: 4
+  isMonorepoProject: false
+links:
+- name: Repository
+  type: REPOSITORY
+  url: https://github.com/LedgerHQ/actions-security
+- name: Documentation
+  type: DOCUMENTATION
+  url: https://ledgerhq.atlassian.net/wiki/spaces/SE/pages/4679598229/Cyber+Security+Product+Supply+Chain+Security+for+Developers
+relationships: {}
+labels:
+  ledger.com/contains_pii: false
+  ledger.com/donjon_review: exempted
+customFields: null
