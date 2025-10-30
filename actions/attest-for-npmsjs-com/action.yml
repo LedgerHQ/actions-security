@@ -1,0 +1,142 @@
+name: "[Ledger Security] Attest a npm package for npmjs.com distribution"
+description: ""
+inputs:
+  subject-path:
+    description: 'Path to the npm package to attest.'
+    required: true
+  github_token:
+    description: 'GitHub Token (to be able to upload the attestation to the GitHub Attestation API).'
+    default: ${{ github.token }}
+    required: true
+  dist-tag:
+    description: 'The npm distribution tag to use when publishing to npmjs.com (e.g., latest, beta, rc, next).'
+    default: 'latest'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+      - name: Check if repository is public (signature are leaking private information)
+        if: ${{ github.event.repository.visibility != 'public' }}
+        shell: bash
+        run: |
+          echo "::error This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
+          exit 1
+      - name: Set GitHub Path
+        run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+        shell: bash
+        env:
+          GITHUB_ACTION_PATH: ${{ github.action_path }}
+      - name: Auto-Detect - Package details
+        id: package-details
+        shell: bash
+        run: |
+          if [ -f "${{ inputs.subject-path }}" ]; then
+            PACKAGE_PATH=${{ inputs.subject-path }}
+          else
+            PACKAGE_PATH=$(ls -1 ${{ inputs.subject-path }}/*.tgz | head -n 1)
+          fi
+
+          pack_json=$(npm pack $PACKAGE_PATH --json | tee pack.json | jq -c)
+          jq <pack.json
+          
+          PACKAGE_FILENAME=$(echo "$pack_json" | jq -r '.[0].filename')
+          PACKAGE_NAME=$(echo "$pack_json" | jq -r '.[0].name')
+          PACKAGE_VERSION=$(echo "$pack_json" | jq -r '.[0].version')
+          PACKAGE_INTEGRITY=$(echo "$pack_json" | jq -r '.[0].integrity')
+          echo "PACKAGE_FILENAME=${PACKAGE_FILENAME}" >> $GITHUB_OUTPUT
+          echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
+          echo "PACKAGE_INTEGRITY=${PACKAGE_INTEGRITY}" >> $GITHUB_OUTPUT
+      - name: Print all outputs of packges details
+        shell: bash
+        run: |
+          echo "PACKAGE_FILENAME=${{ steps.package-details.outputs.PACKAGE_FILENAME }}"
+          echo "PACKAGE_NAME=${{ steps.package-details.outputs.PACKAGE_NAME }}"
+          echo "PACKAGE_VERSION=${{ steps.package-details.outputs.PACKAGE_VERSION }}"
+          echo "PACKAGE_INTEGRITY=${{ steps.package-details.outputs.PACKAGE_INTEGRITY }}"
+      - name: Generate the Predicate
+        shell: bash
+        env:
+          BUILDER_ID: ${{ github.workflow_ref }} # Buid is made on the same job
+          CONFIG_SOURCE_URI: git+${{ github.event.repository.html_url }}@${{ github.ref }}
+          CONFIG_SOURCE_DIGEST: ${{ github.sha }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+          GITHUB_TRIGGERING_ACTOR_ID: ${{ github.triggering_actor }}
+          GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY_OWNER_ID: ${{ github.repository_owner_id}}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_REF_TYPE: ${{ github.ref_type }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
+          BUILD_INVOCATION_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+          NPM_DIST_TAG: ${{ inputs.dist-tag }} # Dist tag that should be used on npmjs.com
+        run: slsa-github-generator-nodejs-predicate.sh
+      - name: Generate the SLSA layout
+        shell: bash
+        env:
+          SLSA_OUTPUTS_ARTIFACTS_FILE: artifacts-layout.json
+          PACKAGE_NAME: ${{ steps.package-details.outputs.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ steps.package-details.outputs.PACKAGE_VERSION }}
+          PACKAGE_INTEGRITY: ${{ steps.package-details.outputs.PACKAGE_INTEGRITY }}
+          PACKAGE_FILENAME: ${{ steps.package-details.outputs.PACKAGE_FILENAME }}
+        run: slsa-github-generator-nodejs-layout.sh
+      - name: Generate the attestation
+        uses: slsa-framework/slsa-github-generator/.github/actions/generate-attestations@v2.0.0
+        with:
+          slsa-layout-file: artifacts-layout.json
+          predicate-type: https://slsa.dev/provenance/v0.2
+          predicate-file: predicate.json
+          output-folder: attestations
+      - name: Sign the attestation
+        uses: slsa-framework/slsa-github-generator/.github/actions/sign-attestations@v2.0.0
+        with:
+          payload-type: application/vnd.in-toto+json
+          attestations: attestations
+          output-folder: attestations-signed 
+      - name: Scan to find the attestation signed from the signed folder
+        shell: bash
+        id: scan-attestations-signed
+        run: |
+          ATTESTATION_SIGNED_PATH=$(ls -1 ./attestations-signed/*.build.slsa | head -n 1)
+          if [ -z "$ATTESTATION_SIGNED_PATH" ]; then
+            echo "Error: No attestation signed files found in the ./attestations-signed directory."
+            exit 1
+          fi
+          echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> $GITHUB_OUTPUT
+      - name: Upload Attestation to the Github API
+        uses: actions/github-script@v6
+        env:
+          ATTESTATION_PATH: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        with:
+          script: |
+            const fs = require('fs');
+            const attestationPath = process.env.ATTESTATION_PATH;
+            const attestationContent = fs.readFileSync(attestationPath, 'utf8');
+            const attestation = JSON.parse(attestationContent);
+            const [owner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
+
+            const response = await github.request('POST /repos/{owner}/{repo}/attestations', {
+              owner: owner,
+              repo: repoName,
+              headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+              },
+              data: {
+                bundle: attestation
+              }
+            });
+
+            if (response.status !== 201) {
+              throw new Error(`Failed to upload attestation to GitHub API. HTTP status code: ${response.status}`);
+            }
+
+            console.log('Attestation uploaded successfully:', response.data);
