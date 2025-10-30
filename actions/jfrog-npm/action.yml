@@ -1,0 +1,95 @@
+name: "[Ledger Security] JFrog NPM"
+author: LedgerHQ
+description: |
+  The `jfrog-npm` GitHub Action facilitates the configuration of the .npmrc file with a set of security oriented options.
+
+  This action is designed for seamless integration within Ledger's CI/CD pipeline, allowing developers to securely interact with JFrog services while automating critical parts of the software supply chain.
+
+inputs:
+  registry:
+    description: "The registry URL from where packages will be installed"
+    required: true
+  token:
+    description: "The authorization token that will be used against the registry"
+    required: true
+  provenance:
+    description: "When publishing from a supported cloud CI/CD system, the package will be publicly linked to where it was built and published from."
+    required: true
+    default: "false"
+  ignore-scripts:
+    description: "If true, npm does not run lifecycle scripts specified in package.json files."
+    required: false
+    default: "false"
+  omit:
+    description: "Dependency types to omit from the installation tree on disk. Note that these dependencies are still resolved and added to the package-lock.json or npm-shrinkwrap.json file. They are just not physically installed on disk."
+    required: false
+    default: "false"
+  minimum-release-age:
+    description: "Minimum age in minutes required for packages before installation. Helps avoid installing newly published packages for security."
+    required: false
+    default: "false"
+  auto-install-peers:
+    description: "pnpm option to automatically install peer dependencies"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup npm config for JFrog
+      shell: bash
+      env:
+        INPUTS_REGISTRY: ${{inputs.registry}}
+        INPUTS_TOKEN: ${{inputs.token}}
+      run: |
+        cat << EOF | tee .npmrc
+        registry=https://${INPUTS_REGISTRY}/
+        //${INPUTS_REGISTRY}/:_authToken=${INPUTS_TOKEN}
+        EOF
+
+    - name: Enable provenance
+      shell: bash
+      env:
+        INPUTS_PROVENANCE: ${{inputs.provenance}}
+      if: inputs.provenance != 'false'
+      run: |
+        cat << EOF | tee -a .npmrc
+        provenance=true
+        EOF
+
+    - name: Disable lifecycle scripts
+      shell: bash
+      if: inputs.ignore-scripts != 'false'
+      run: |
+        cat << EOF | tee -a .npmrc
+        ignore-scripts=true
+        EOF
+
+    - name: Omit packages by type
+      shell: bash
+      env:
+        INPUTS_OMIT: ${{inputs.omit}}
+      if: inputs.omit != 'false'
+      run: |
+        cat << EOF | tee -a .npmrc
+        omit=${INPUTS_OMIT}
+        EOF
+
+    - name: Only install packages older than age
+      shell: bash
+      env:
+        INPUTS_MINIMUM_RELEASE_AGE: ${{inputs.minimum-release-age}}
+      if: inputs.minimum-release-age != 'false'
+      run: |
+        cat << EOF | tee -a .npmrc
+        minimum-release-age=${INPUTS_MINIMUM_RELEASE_AGE}
+        EOF
+
+    - name: Toggle autoInstallPeers
+      shell: bash
+      env:
+        INPUTS_AUTO_INSTALL_PEERS: ${{inputs.auto-install-peers}}
+      run: |
+        cat << EOF | tee -a .npmrc
+        auto-install-peers=${INPUTS_AUTO_INSTALL_PEERS}
+        EOF

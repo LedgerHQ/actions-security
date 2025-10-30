@@ -31,7 +31,7 @@ runs:
   using: "composite"
   steps:
     - name: Generate and sign attestation (SLSA type)
-      uses: actions/attest-build-provenance@v1
+      uses: actions/attest-build-provenance@v3
       if: ${{ inputs.type-slsa == 'true' }}
       with:
         subject-path: ${{ inputs.subject-path }}
