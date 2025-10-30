@@ -41,7 +41,8 @@ cat <<EOF > predicate.json
             "GITHUB_SHA": "$GITHUB_SHA",
             "GITHUB_TRIGGERING_ACTOR_ID": "$GITHUB_TRIGGERING_ACTOR_ID",
             "GITHUB_WORKFLOW_REF": "$GITHUB_WORKFLOW_REF",
-            "GITHUB_WORKFLOW_SHA": "$GITHUB_WORKFLOW_SHA"
+            "GITHUB_WORKFLOW_SHA": "$GITHUB_WORKFLOW_SHA",
+            "NPM_DIST_TAG": "${NPM_DIST_TAG}"
         }
     },
     "metadata": {
