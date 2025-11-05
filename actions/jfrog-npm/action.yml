@@ -52,10 +52,8 @@ runs:
       env:
         INPUTS_REGISTRY: ${{inputs.registry}}
         INPUTS_TOKEN: ${{inputs.token}}
-        INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       run: |
-        touch "${INPUTS_NPMRC_LOCATION}"
-        cat << EOF | tee "${INPUTS_NPMRC_LOCATION}"
+        cat << EOF | tee "${{inputs.npmrc-location}}"
         registry=https://${INPUTS_REGISTRY}/
         //${INPUTS_REGISTRY}/:_authToken=${INPUTS_TOKEN}
         EOF
@@ -64,20 +62,17 @@ runs:
       shell: bash
       env:
         INPUTS_PROVENANCE: ${{inputs.provenance}}
-        INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       if: inputs.provenance != 'false'
       run: |
-        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         provenance=true
         EOF
 
     - name: Disable lifecycle scripts
       shell: bash
       if: inputs.ignore-scripts != 'false'
-      env:
-        INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       run: |
-        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         ignore-scripts=true
         EOF
 
@@ -85,10 +80,9 @@ runs:
       shell: bash
       env:
         INPUTS_OMIT: ${{inputs.omit}}
-        INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       if: inputs.omit != 'false'
       run: |
-        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         omit=${INPUTS_OMIT}
         EOF
 
@@ -96,10 +90,9 @@ runs:
       shell: bash
       env:
         INPUTS_MINIMUM_RELEASE_AGE: ${{inputs.minimum-release-age}}
-        INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       if: inputs.minimum-release-age != 'false'
       run: |
-        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         minimum-release-age=${INPUTS_MINIMUM_RELEASE_AGE}
         EOF
 
@@ -107,8 +100,7 @@ runs:
       shell: bash
       env:
         INPUTS_AUTO_INSTALL_PEERS: ${{inputs.auto-install-peers}}
-        INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       run: |
-        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         auto-install-peers=${INPUTS_AUTO_INSTALL_PEERS}
         EOF
