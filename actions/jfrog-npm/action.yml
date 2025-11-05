@@ -54,7 +54,6 @@ runs:
         INPUTS_TOKEN: ${{inputs.token}}
         INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       run: |
-        mkdir -p "${INPUTS_NPMRC_LOCATION}"
         touch "${INPUTS_NPMRC_LOCATION}"
         cat << EOF | tee "${INPUTS_NPMRC_LOCATION}"
         registry=https://${INPUTS_REGISTRY}/
