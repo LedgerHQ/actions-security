@@ -54,7 +54,7 @@ runs:
         INPUTS_TOKEN: ${{inputs.token}}
         INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       run: |
-        cat << EOF | tee "${INPUT_NPMRC_LOCATION}"
+        cat << EOF | tee "${INPUTS_NPMRC_LOCATION}"
         registry=https://${INPUTS_REGISTRY}/
         //${INPUTS_REGISTRY}/:_authToken=${INPUTS_TOKEN}
         EOF
@@ -66,7 +66,7 @@ runs:
         INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       if: inputs.provenance != 'false'
       run: |
-        cat << EOF | tee -a "${INPUT_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
         provenance=true
         EOF
 
@@ -76,7 +76,7 @@ runs:
       env:
         INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       run: |
-        cat << EOF | tee -a .npmrc
+        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
         ignore-scripts=true
         EOF
 
@@ -87,7 +87,7 @@ runs:
         INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       if: inputs.omit != 'false'
       run: |
-        cat << EOF | tee -a "${INPUT_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
         omit=${INPUTS_OMIT}
         EOF
 
@@ -98,7 +98,7 @@ runs:
         INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       if: inputs.minimum-release-age != 'false'
       run: |
-        cat << EOF | tee -a "${INPUT_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
         minimum-release-age=${INPUTS_MINIMUM_RELEASE_AGE}
         EOF
 
@@ -108,6 +108,6 @@ runs:
         INPUTS_AUTO_INSTALL_PEERS: ${{inputs.auto-install-peers}}
         INPUTS_NPMRC_LOCATION: ${{inputs.npmrc-location}}
       run: |
-        cat << EOF | tee -a "${INPUT_NPMRC_LOCATION}"
+        cat << EOF | tee -a "${INPUTS_NPMRC_LOCATION}"
         auto-install-peers=${INPUTS_AUTO_INSTALL_PEERS}
         EOF
