@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/LedgerHQ/actions-security/compare/actions/attest-1.0.3...actions/attest-1.0.4) (2025-10-24)
+
+
+### Bug Fixes
+
+* **attest:** bump actions/attest-build-provenance from v1 to v3 ([#68](https://github.com/LedgerHQ/actions-security/issues/68)) ([b89c8b3](https://github.com/LedgerHQ/actions-security/commit/b89c8b35c65ece0f0cc350ce45f7c986c6a03824))
+
 ## [1.0.3](https://github.com/LedgerHQ/actions-security/compare/actions/attest-1.0.2...actions/attest-1.0.3) (2024-09-13)
 
 
