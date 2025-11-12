@@ -9,13 +9,6 @@ inputs:
   registry:
     description: "The registry URL from where packages will be installed"
     required: true
-  publish-registry:
-    description: "The registry URL to where packages will be published"
-    required: false
-  publish-scope:
-    description: "Which scoped packages will be publised to the `publish-registy`"
-    required: false
-    default: "@ledgerhq"
   npmrc-location:
     description: "Specify the location of the .npmrc file that will be created"
     required: false
