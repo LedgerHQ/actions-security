@@ -9,6 +9,10 @@ inputs:
   registry:
     description: "The registry URL from where packages will be installed"
     required: true
+  npmrc-location:
+    description: "Specify the location of the .npmrc file that will be created"
+    required: false
+    default: ".npmrc"
   token:
     description: "The authorization token that will be used against the registry"
     required: true
@@ -42,7 +46,7 @@ runs:
         INPUTS_REGISTRY: ${{inputs.registry}}
         INPUTS_TOKEN: ${{inputs.token}}
       run: |
-        cat << EOF | tee .npmrc
+        cat << EOF | tee "${{inputs.npmrc-location}}"
         registry=https://${INPUTS_REGISTRY}/
         //${INPUTS_REGISTRY}/:_authToken=${INPUTS_TOKEN}
         EOF
@@ -53,7 +57,7 @@ runs:
         INPUTS_PROVENANCE: ${{inputs.provenance}}
       if: inputs.provenance != 'false'
       run: |
-        cat << EOF | tee -a .npmrc
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         provenance=true
         EOF
 
@@ -61,7 +65,7 @@ runs:
       shell: bash
       if: inputs.ignore-scripts != 'false'
       run: |
-        cat << EOF | tee -a .npmrc
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         ignore-scripts=true
         EOF
 
@@ -71,7 +75,7 @@ runs:
         INPUTS_OMIT: ${{inputs.omit}}
       if: inputs.omit != 'false'
       run: |
-        cat << EOF | tee -a .npmrc
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         omit=${INPUTS_OMIT}
         EOF
 
@@ -81,7 +85,7 @@ runs:
         INPUTS_MINIMUM_RELEASE_AGE: ${{inputs.minimum-release-age}}
       if: inputs.minimum-release-age != 'false'
       run: |
-        cat << EOF | tee -a .npmrc
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         minimum-release-age=${INPUTS_MINIMUM_RELEASE_AGE}
         EOF
 
@@ -90,6 +94,6 @@ runs:
       env:
         INPUTS_AUTO_INSTALL_PEERS: ${{inputs.auto-install-peers}}
       run: |
-        cat << EOF | tee -a .npmrc
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
         auto-install-peers=${INPUTS_AUTO_INSTALL_PEERS}
         EOF
