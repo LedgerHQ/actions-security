@@ -111,6 +111,11 @@ runs:
             exit 1
           fi
           echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> $GITHUB_OUTPUT
+      - name: Upload Signed Attestation - temporary
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
+          name: signed-attestations.json
       - name: Upload Attestation to the Github API
         uses: actions/github-script@v6
         env:
