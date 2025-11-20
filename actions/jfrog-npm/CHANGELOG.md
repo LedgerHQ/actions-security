@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-npm-0.2.0...actions/jfrog-npm-0.3.0) (2025-11-12)
+
+
+### Features
+
+* add `npmrc-location` input ([#71](https://github.com/LedgerHQ/actions-security/issues/71)) ([e76d185](https://github.com/LedgerHQ/actions-security/commit/e76d18510fe712b420d77c6a8123d30cf0d3d2b9))
+
 ## [0.2.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-npm-0.1.0...actions/jfrog-npm-0.2.0) (2025-10-16)
 
 
