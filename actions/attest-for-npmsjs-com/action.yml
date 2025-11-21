@@ -28,29 +28,28 @@ runs:
         shell: bash
         run: |
           if [ -f "${{ inputs.subject-path }}" ]; then
-            PACKAGE_PATH=${{ inputs.subject-path }}
+            FILES="${{ inputs.subject-path }}"
           else
-            PACKAGE_PATH=$(ls -1 ${{ inputs.subject-path }}/*.tgz | head -n 1)
+            if ls ${{ inputs.subject-path }}/*.tgz 1> /dev/null 2>&1; then
+              FILES=${{ inputs.subject-path }}/*.tgz
+            else
+              echo "Error: No .tgz files found in ${{ inputs.subject-path }}"
+              exit 1
+            fi
           fi
 
-          pack_json=$(npm pack $PACKAGE_PATH --json | tee pack.json | jq -c)
-          jq <pack.json
+          # npm pack supports multiple arguments and outputs a JSON array of results
+          # It also copies the files to the current directory, which is needed for subsequent steps
+          pack_json=$(npm pack $FILES --json)
           
-          PACKAGE_FILENAME=$(echo "$pack_json" | jq -r '.[0].filename')
-          PACKAGE_NAME=$(echo "$pack_json" | jq -r '.[0].name')
-          PACKAGE_VERSION=$(echo "$pack_json" | jq -r '.[0].version')
-          PACKAGE_INTEGRITY=$(echo "$pack_json" | jq -r '.[0].integrity')
-          echo "PACKAGE_FILENAME=${PACKAGE_FILENAME}" >> $GITHUB_OUTPUT
-          echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
-          echo "PACKAGE_INTEGRITY=${PACKAGE_INTEGRITY}" >> $GITHUB_OUTPUT
+          # Compact the JSON for output
+          PACKAGES_LIST=$(echo "$pack_json" | jq -c '.')
+          echo "PACKAGES_LIST=${PACKAGES_LIST}" >> $GITHUB_OUTPUT
+
       - name: Print all outputs of packges details
         shell: bash
         run: |
-          echo "PACKAGE_FILENAME=${{ steps.package-details.outputs.PACKAGE_FILENAME }}"
-          echo "PACKAGE_NAME=${{ steps.package-details.outputs.PACKAGE_NAME }}"
-          echo "PACKAGE_VERSION=${{ steps.package-details.outputs.PACKAGE_VERSION }}"
-          echo "PACKAGE_INTEGRITY=${{ steps.package-details.outputs.PACKAGE_INTEGRITY }}"
+          echo "PACKAGES_LIST=${{ steps.package-details.outputs.PACKAGES_LIST }}"
       - name: Generate the Predicate
         shell: bash
         env:
@@ -78,10 +77,7 @@ runs:
         shell: bash
         env:
           SLSA_OUTPUTS_ARTIFACTS_FILE: artifacts-layout.json
-          PACKAGE_NAME: ${{ steps.package-details.outputs.PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ steps.package-details.outputs.PACKAGE_VERSION }}
-          PACKAGE_INTEGRITY: ${{ steps.package-details.outputs.PACKAGE_INTEGRITY }}
-          PACKAGE_FILENAME: ${{ steps.package-details.outputs.PACKAGE_FILENAME }}
+          PACKAGES_LIST: ${{ steps.package-details.outputs.PACKAGES_LIST }}
         run: slsa-github-generator-nodejs-layout.sh
       - name: Generate the attestation
         uses: slsa-framework/slsa-github-generator/.github/actions/generate-attestations@v2.0.0
@@ -100,38 +96,49 @@ runs:
         shell: bash
         id: scan-attestations-signed
         run: |
-          ATTESTATION_SIGNED_PATH=$(ls -1 ./attestations-signed/*.build.slsa | head -n 1)
-          if [ -z "$ATTESTATION_SIGNED_PATH" ]; then
-            echo "Error: No attestation signed files found in the ./attestations-signed directory."
-            exit 1
+          if ls ./attestations-signed/*.build.slsa 1> /dev/null 2>&1; then
+             ATTESTATION_FILES=$(ls -1 ./attestations-signed/*.build.slsa)
+          else
+             echo "Error: No attestation signed files found in the ./attestations-signed directory."
+             exit 1
           fi
-          echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> $GITHUB_OUTPUT
+          
+          ATTESTATION_FILES_JSON=$(echo "$ATTESTATION_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "ATTESTATION_FILES_JSON=${ATTESTATION_FILES_JSON}" >> $GITHUB_OUTPUT
       - name: Upload Attestation to the Github API
         uses: actions/github-script@v6
         env:
-          ATTESTATION_PATH: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
+          ATTESTATION_FILES_JSON: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_FILES_JSON }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         with:
           script: |
             const fs = require('fs');
-            const attestationPath = process.env.ATTESTATION_PATH;
-            const attestationContent = fs.readFileSync(attestationPath, 'utf8');
-            const attestation = JSON.parse(attestationContent);
+            const attestationFiles = JSON.parse(process.env.ATTESTATION_FILES_JSON);
             const [owner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
 
-            const response = await github.request('POST /repos/{owner}/{repo}/attestations', {
-              owner: owner,
-              repo: repoName,
-              headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-              },
-              data: {
-                bundle: attestation
+            for (const attestationPath of attestationFiles) {
+              console.log(`Uploading attestation from: ${attestationPath}`);
+              const attestationContent = fs.readFileSync(attestationPath, 'utf8');
+              const attestation = JSON.parse(attestationContent);
+
+              try {
+                const response = await github.request('POST /repos/{owner}/{repo}/attestations', {
+                  owner: owner,
+                  repo: repoName,
+                  headers: {
+                    'X-GitHub-Api-Version': '2022-11-28'
+                  },
+                  data: {
+                    bundle: attestation
+                  }
+                });
+
+                if (response.status !== 201) {
+                  throw new Error(`Failed to upload attestation for ${attestationPath}. HTTP status code: ${response.status}`);
+                }
+                console.log(`Attestation uploaded successfully for ${attestationPath}:`, response.data);
+              } catch (error) {
+                console.error(`Error uploading attestation for ${attestationPath}:`, error);
+                process.exit(1);
               }
-            });
-
-            if (response.status !== 201) {
-              throw new Error(`Failed to upload attestation to GitHub API. HTTP status code: ${response.status}`);
             }
-
-            console.log('Attestation uploaded successfully:', response.data);
