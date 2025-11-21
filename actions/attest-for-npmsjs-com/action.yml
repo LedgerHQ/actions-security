@@ -204,7 +204,7 @@ runs:
           ATTESTATION_FILES_JSON=$(echo "$ATTESTATION_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "$ATTESTATION_FILES_JSON" > attestation_files.json
           echo "ATTESTATION_FILES_FILE=attestation_files.json" >> $GITHUB_OUTPUT
-      - name: Upload Attestation to the Github API
+      - name: Upload Attestation to the GitHub API
         uses: actions/github-script@v6
         env:
           ATTESTATION_FILES_FILE: attestation_files.json
