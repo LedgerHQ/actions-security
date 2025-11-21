@@ -27,23 +27,52 @@ runs:
         id: package-details
         shell: bash
         run: |
-          if [ -f "${{ inputs.subject-path }}" ]; then
-            FILES="${{ inputs.subject-path }}"
-          else
-            if ls ${{ inputs.subject-path }}/*.tgz 1> /dev/null 2>&1; then
-              FILES=${{ inputs.subject-path }}/*.tgz
-            else
-              echo "Error: No .tgz files found in ${{ inputs.subject-path }}"
-              exit 1
+          # Initialize a temporary file to accumulate JSON results from npm pack
+          touch packages_accumulated.json
+
+          process_file() {
+            local file="$1"
+            local json_output
+            
+            # Run 'npm pack' to generate the package tarball (if needed) and output metadata in JSON format.
+            # We suppress stderr to silently skip invalid packages or files that are not valid npm packages,
+            # allowing the action to proceed with only the valid ones found in the directory.
+            if ! json_output=$(npm pack "$file" --json 2>/dev/null); then
+               echo "Warning: Failed to pack $file. It might not be a valid npm package. Skipping."
+               return
             fi
+
+            # Validate that the output is valid JSON before adding it to our list.
+            if echo "$json_output" | jq -e . >/dev/null 2>&1; then
+               echo "$json_output" >> packages_accumulated.json
+            else
+               echo "Warning: Invalid JSON output from npm pack for $file. Skipping."
+            fi
+          }
+
+          if [ -f "${{ inputs.subject-path }}" ]; then
+            process_file "${{ inputs.subject-path }}"
+          elif [ -d "${{ inputs.subject-path }}" ]; then
+             # Use 'find' to safely handle directories with a large number of files or filenames containing spaces.
+             # We process files sequentially to avoid "Argument list too long" errors that can occur with shell expansion.
+             while IFS= read -r -d '' file; do
+                process_file "$file"
+             done < <(find "${{ inputs.subject-path }}" -maxdepth 1 -name "*.tgz" -print0)
+          else
+             echo "Error: subject-path '${{ inputs.subject-path }}' is not a valid file or directory."
+             exit 1
+          fi
+          
+          # Ensure at least one valid package was found and processed.
+          if [ ! -s packages_accumulated.json ]; then
+             echo "Error: No valid npm packages found to attest in ${{ inputs.subject-path }}"
+             exit 1
           fi
 
-          # npm pack supports multiple arguments and outputs a JSON array of results
-          # It also copies the files to the current directory, which is needed for subsequent steps
-          pack_json=$(npm pack $FILES --json)
-          
-          # Compact the JSON for output
-          PACKAGES_LIST=$(echo "$pack_json" | jq -c '.')
+          # specific case of npm pack who return a list of list of object.
+          # We want a flat list of object.
+          # Combine all individual JSON array entries into a single list.
+          PACKAGES_LIST=$(jq -s 'add' packages_accumulated.json | jq -c '.')
           echo "PACKAGES_LIST=${PACKAGES_LIST}" >> $GITHUB_OUTPUT
 
       - name: Print all outputs of packges details
@@ -96,8 +125,10 @@ runs:
         shell: bash
         id: scan-attestations-signed
         run: |
-          if ls ./attestations-signed/*.build.slsa 1> /dev/null 2>&1; then
-             ATTESTATION_FILES=$(ls -1 ./attestations-signed/*.build.slsa)
+          # Use 'find' instead of shell globbing to robustly handle large numbers of files 
+          # and avoid "Argument list too long" errors.
+          if find ./attestations-signed -maxdepth 1 -name "*.build.slsa" -print -quit | grep -q .; then
+             ATTESTATION_FILES=$(find ./attestations-signed -maxdepth 1 -name "*.build.slsa")
           else
              echo "Error: No attestation signed files found in the ./attestations-signed directory."
              exit 1
