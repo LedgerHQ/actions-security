@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+* Add artifact upload for npm package tarballs
+
 ## 0.1.0 (2025-11-20)
 
 
