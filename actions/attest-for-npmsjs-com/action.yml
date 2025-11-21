@@ -34,19 +34,53 @@ runs:
             local file="$1"
             local json_output
             
-            # Run 'npm pack' to generate the package tarball (if needed) and output metadata in JSON format.
-            # We suppress stderr to silently skip invalid packages or files that are not valid npm packages,
-            # allowing the action to proceed with only the valid ones found in the directory.
-            if ! json_output=$(npm pack "$file" --json 2>/dev/null); then
-               echo "Warning: Failed to pack $file. It might not be a valid npm package. Skipping."
-               return
+            # Check if the file is already a .tgz (pre-packed) or needs to be packed
+            if [[ "$file" == *.tgz ]]; then
+              # File is already packed - extract metadata and calculate integrity from the actual file
+              echo "Processing pre-packed file: $file"
+              
+              # Extract package.json from the tarball to get name and version
+              if ! tar -xzOf "$file" package/package.json > /tmp/package.json 2>/dev/null; then
+                echo "Warning: Failed to extract package.json from $file. Skipping."
+                return
+              fi
+              
+              local pkg_name=$(jq -r '.name' /tmp/package.json)
+              local pkg_version=$(jq -r '.version' /tmp/package.json)
+              local filename=$(basename "$file")
+              
+              # Calculate the actual integrity hash from the file
+              local integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A)
+              
+              # Build JSON in the same format as npm pack --json
+              json_output=$(jq -n \
+                --arg name "$pkg_name" \
+                --arg version "$pkg_version" \
+                --arg filename "$filename" \
+                --arg integrity "sha512-$integrity" \
+                '[{
+                  "name": $name,
+                  "version": $version,
+                  "filename": $filename,
+                  "integrity": $integrity
+                }]')
+              
+              rm -f /tmp/package.json
+            else
+              # Run 'npm pack' to generate the package tarball and output metadata in JSON format.
+              # We suppress stderr to silently skip invalid packages or files that are not valid npm packages,
+              # allowing the action to proceed with only the valid ones found in the directory.
+              if ! json_output=$(npm pack "$file" --json 2>/dev/null); then
+                 echo "Warning: Failed to pack $file. It might not be a valid npm package. Skipping."
+                 return
+              fi
             fi
 
             # Validate that the output is valid JSON before adding it to our list.
             if echo "$json_output" | jq -e . >/dev/null 2>&1; then
                echo "$json_output" >> packages_accumulated.json
             else
-               echo "Warning: Invalid JSON output from npm pack for $file. Skipping."
+               echo "Warning: Invalid JSON output for $file. Skipping."
             fi
           }
 
