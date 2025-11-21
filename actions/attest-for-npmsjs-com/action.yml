@@ -137,7 +137,7 @@ runs:
           jq -s 'add' packages_accumulated.json > packages_list.json
           echo "PACKAGES_LIST_FILE=packages_list.json" >> $GITHUB_OUTPUT
 
-      - name: Print all outputs of packges details
+      - name: Print all outputs of packages details
         shell: bash
         run: |
           echo "PACKAGES_LIST_FILE=${{ steps.package-details.outputs.PACKAGES_LIST_FILE }}"
