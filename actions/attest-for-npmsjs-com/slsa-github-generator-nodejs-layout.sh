@@ -86,9 +86,10 @@ if [ ! -f "${PACKAGES_LIST_FILE}" ]; then
   exit 1
 fi
 
-jq -c '.[]' "${PACKAGES_LIST_FILE}" | while read -r pkg; do
+# Use process substitution to avoid subshell issues with while loop
+while read -r pkg; do
     process_package "$pkg"
-done > "$ATTESTATIONS_FILE"
+done < <(jq -c '.[]' "${PACKAGES_LIST_FILE}") > "$ATTESTATIONS_FILE"
 
 # Combine into final layout
 # -s reads all inputs into an array
