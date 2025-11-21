@@ -53,19 +53,29 @@ runs:
               local filename=$(basename "$file")
               rm -f "$tmp_pkg_json"
               
-              # Calculate the actual integrity hash from the file
-              # We use openssl for the base64 integrity to avoid dependencies like xxd
-              # We strip all whitespace to ensure the base64 string is clean
-              local integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A | tr -d '[:space:]')
-              
-              # For debugging, we also print the HEX value
-              local sha_hex
-              if command -v sha512sum >/dev/null 2>&1; then
-                 sha_hex=$(sha512sum -b "$file" | awk '{print $1}')
-              else
-                 # Fallback to parsing openssl output. Format is usually "SHA512(file)= hex"
-                 sha_hex=$(openssl dgst -sha512 "$file" | sed 's/^.*= //')
+              # Calculate the actual integrity hash from the file using Node.js
+              # This avoids any shell/binary/piping issues with openssl or sha512sum
+              local node_hash_script="
+const fs = require('fs');
+const crypto = require('crypto');
+try {
+  const content = fs.readFileSync(process.argv[1]);
+  const hex = crypto.createHash('sha512').update(content).digest('hex');
+  const base64 = crypto.createHash('sha512').update(content).digest('base64');
+  console.log(hex + ' ' + base64);
+} catch (e) {
+  console.error(e);
+  process.exit(1);
+}
+"
+              local hash_output
+              if ! hash_output=$(node -e "$node_hash_script" "$file"); then
+                  echo "Error: Failed to calculate hash for $file"
+                  return
               fi
+              
+              local sha_hex=$(echo "$hash_output" | awk '{print $1}')
+              local integrity=$(echo "$hash_output" | awk '{print $2}')
               
               echo "Debug: Calculated SHA512 (hex): $sha_hex"
               echo "Debug: File details for $filename:"
