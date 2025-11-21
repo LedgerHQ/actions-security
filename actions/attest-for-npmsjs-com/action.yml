@@ -54,11 +54,26 @@ runs:
               rm -f "$tmp_pkg_json"
               
               # Calculate the actual integrity hash from the file
-              # usage of openssl is safer than sha512sum which is not always available on macos
-              # We strip all whitespace to ensure the base64 string is clean
-              local integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A | tr -d '[:space:]')
+              # We use sha512sum if available as it is standard, falling back to openssl
+              # We explicitly strip whitespace
+              local integrity
+              if command -v sha512sum >/dev/null 2>&1; then
+                 # sha512sum output: <hex>  <filename>
+                 local sha_hex=$(sha512sum -b "$file" | awk '{print $1}')
+                 # Convert hex to base64
+                 integrity=$(echo -n "$sha_hex" | xxd -r -p | openssl base64 -A | tr -d '[:space:]')
+                 echo "Debug: Calculated SHA512 (hex) using sha512sum: $sha_hex"
+              else
+                 integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A | tr -d '[:space:]')
+                 # Decode back to hex for logging
+                 local sha_hex=$(echo -n "$integrity" | openssl base64 -d | od -A n -v -t x1 | tr -d '[:space:]')
+                 echo "Debug: Calculated SHA512 (hex) using openssl: $sha_hex"
+              fi
               
-              echo "Debug: Calculated integrity for $filename: sha512-$integrity"
+              # Log file details to help debug mismatch issues
+              echo "Debug: File details for $filename:"
+              ls -l "$file"
+              echo "Debug: Integrity (base64): sha512-$integrity"
               
               # Build JSON in the same format as npm pack --json
               json_output=$(jq -n \
