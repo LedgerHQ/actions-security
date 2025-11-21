@@ -1,17 +1,54 @@
 # actions-security
-Github Action - Security actions and reusable workflow used at Ledger
+
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ledgerhq/actions-security/release.yaml)](https://github.com/ledgerhq/actions-security/actions/workflows/release.yaml)
+[![GitHub issues](https://img.shields.io/github/issues/ledgerhq/actions-security)](https://github.com/ledgerhq/actions-security/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/ledgerhq/actions-security)](https://github.com/ledgerhq/actions-security/pulls)
+[![Maintained](https://img.shields.io/badge/Maintained-Yes-brightgreen)](https://github.com/ledgerhq/actions-security/pulse)
+
+A collection of GitHub Actions and reusable workflows focused on enhancing security in CI/CD pipelines. These actions are developed by Ledger and made available to the community.
+
+## Overview
+
+This repository contains security-focused GitHub Actions that help secure your software supply chain through:
+- Secure authentication with artifact repositories
+- Attestation generation and verification
+- Secure signing of artifacts and containers
+- And more
 
 > [!TIP]
-> To benefit from the patch and minor upgrade, please use the major tag of the action that you are using
+> For reliable updates, reference actions by their major version tag (e.g., `actions/attest-1`). This ensures you receive patch and minor updates automatically while avoiding breaking changes.
 
 > [!IMPORTANT]
-> Theses actions can require to define custom permission inside the Github Action Workflow where they are use. Like, `id-token: write`or `attestations: write`, please refer to the documenation of each action to have more informations.
+> Some actions require specific GitHub workflow permissions such as `id-token: write` or `attestations: write`. Please refer to each action's documentation for detailed requirements.
 
-## Actions
+## Available Actions
 
-| Path | Last major version | Usage |
-| ------------- | ------------- | ------------- |
-| [actions/jfrog-login](actions/jfrog-login) | `actions/jfrog-login-1` | The `jfrog-login` GitHub Action facilitates a secure login to Ledger's JFrog platform, which includes services such as **Artifactory** and **Xray**. By using OIDC authentication, this action ensures secure access to manage artifacts, perform security scans, and interact with the JFrog APIs and CLI without handling sensitive credentials manually.<br><br>This action is designed for seamless integration within Ledger's CI/CD pipeline, allowing developers to securely interact with JFrog services while automating critical parts of the software supply chain. |
-| [actions/attest](actions/attest) | `actions/attest-1` | The `attest` GitHub Action enables the generation and signing of provenance files using the **in-toto** attestation format. Leveraging OIDC authentication for keyless signing, this action securely creates verifiable metadata about your software artifacts without the need to manage sensitive signing keys manually.<br><br>Designed for seamless integration within Ledger's CI/CD pipeline, the `attest` action automates the creation of cryptographic attestations, enhancing the integrity, authenticity, and traceability of your software supply chain. By providing a secure method to verify the origin and build process of your artifacts, it helps safeguard against supply chain attacks and meets compliance requirements for software distribution. |
-| [actions/sign-blob](actions/sign-blob) | `actions/sign-blob-1` | The `sign-blob` GitHub Action enables secure, keyless signing of arbitrary data blobs using OIDC authentication based on GitHub's OIDC token. By eliminating the need to handle sensitive signing keys manually, this action allows developers to sign files, binaries, or other data artifacts securely within the CI/CD pipeline.<br><br>This action is designed for seamless integration within Ledger's CI/CD workflow, automating the signing process to enhance the security and integrity of your software artifacts. By providing a secure and automated method for signing data, it helps ensure the authenticity and non-repudiation of artifacts distributed through the software supply chain. |
-| [actions/sign-container](actions/sign-container) | `actions/sign-container-1` | The `sign-container` GitHub Action provides secure, keyless signing of container images with multiple tags using OIDC authentication based on GitHub's OIDC token. This action allows developers to sign container images without manually managing sensitive signing keys, enhancing the trust and integrity of containerized applications.<br><br>Designed for seamless integration within Ledger's CI/CD pipeline, the `sign-container` action automates the container signing process, ensuring that container images are securely signed and verifiable. By incorporating secure signing into your container deployment workflow, it helps protect against unauthorized modifications and ensures compliance with container security policies. |
+| Action | Latest Version | Description |
+|--------|----------------|-------------|
+| [actions/jfrog-login](actions/jfrog-login) | `actions/jfrog-login-1` | Securely authenticate to JFrog services (Artifactory, Xray) using OIDC, eliminating the need for static credentials. Enables artifact management and security scanning within CI/CD pipelines. |
+| [actions/attest](actions/attest) | `actions/attest-1` | Generate and sign **in-toto** attestations for your artifacts using keyless signing with OIDC. Create verifiable metadata about your software supply chain to enhance integrity and traceability. |
+| [actions/sign-blob](actions/sign-blob) | `actions/sign-blob-1` | Sign arbitrary data using keyless signing with GitHub's OIDC tokens. Secure your files, binaries, and other artifacts without managing sensitive signing keys. |
+| [actions/sign-container](actions/sign-container) | `actions/sign-container-1` | Sign container images with multiple tags using keyless signing. Ensure the integrity and authenticity of your containers throughout your deployment pipeline. |
+
+## Getting Started
+
+Each action directory contains:
+- Detailed documentation in its README.md
+- Usage examples
+- Parameter descriptions
+- Required permissions
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
