@@ -50,11 +50,21 @@ process_package() {
     
     # The integrity digest
     local integrity_digest="${PACKAGE_INTEGRITY:-}"
-    
+
+    # Validate integrity_digest format: should be like "sha512-<base64>"
+    if ! [[ "${integrity_digest}" =~ ^[a-zA-Z0-9]+-[A-Za-z0-9+/=]+$ ]]; then
+        echo "Error: Invalid integrity digest format for package '${PACKAGE_NAME}': '${integrity_digest}'" >&2
+        exit 1
+    fi
+
     # Parse alg and digest
     local alg=$(echo "${integrity_digest}" | cut -d'-' -f1 | tr '[:upper:]' '[:lower:]')
-    local digest=$(echo "${integrity_digest}" | cut -d'-' -f2- | base64 -d | od -A n -v -t x1 | tr -d ' \n')
-    
+    local base64_digest=$(echo "${integrity_digest}" | cut -d'-' -f2-)
+    # Try to base64-decode, catch errors
+    if ! digest=$(echo "${base64_digest}" | base64 -d 2>/dev/null | od -A n -v -t x1 | tr -d ' \n'); then
+        echo "Error: Failed to base64-decode integrity digest for package '${PACKAGE_NAME}': '${base64_digest}'" >&2
+        exit 1
+    fi
     local attestation_name="${PACKAGE_FILENAME%.*}"
     
     # Construct JSON for this attestation
