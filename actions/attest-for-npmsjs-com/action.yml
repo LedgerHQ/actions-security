@@ -56,18 +56,18 @@ runs:
               # Calculate the actual integrity hash from the file using Node.js
               # This avoids any shell/binary/piping issues with openssl or sha512sum
               local node_hash_script="
-const fs = require('fs');
-const crypto = require('crypto');
-try {
-  const content = fs.readFileSync(process.argv[1]);
-  const hex = crypto.createHash('sha512').update(content).digest('hex');
-  const base64 = crypto.createHash('sha512').update(content).digest('base64');
-  console.log(hex + ' ' + base64);
-} catch (e) {
-  console.error(e);
-  process.exit(1);
-}
-"
+              const fs = require('fs');
+              const crypto = require('crypto');
+              try {
+                const content = fs.readFileSync(process.argv[1]);
+                const hex = crypto.createHash('sha512').update(content).digest('hex');
+                const base64 = crypto.createHash('sha512').update(content).digest('base64');
+                console.log(hex + ' ' + base64);
+              } catch (e) {
+                console.error(e);
+                process.exit(1);
+              }
+              "
               local hash_output
               if ! hash_output=$(node -e "$node_hash_script" "$file"); then
                   echo "Error: Failed to calculate hash for $file"
