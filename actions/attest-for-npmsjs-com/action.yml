@@ -135,6 +135,11 @@ runs:
           # We want a flat list of object.
           # Combine all individual JSON array entries into a single list.
           jq -s 'add' packages_accumulated.json > packages_list.json
+          # Validate that packages_list.json is a valid, non-empty array
+          if ! jq 'type == "array" and length > 0' packages_list.json | grep -q true; then
+            echo "Error: packages_list.json is not a valid non-empty array. Please check the input packages."
+            exit 1
+          fi
           echo "PACKAGES_LIST_FILE=packages_list.json" >> $GITHUB_OUTPUT
 
       - name: Print all outputs of packages details
