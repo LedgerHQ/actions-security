@@ -54,23 +54,20 @@ runs:
               rm -f "$tmp_pkg_json"
               
               # Calculate the actual integrity hash from the file
-              # We use sha512sum if available as it is standard, falling back to openssl
-              # We explicitly strip whitespace
-              local integrity
+              # We use openssl for the base64 integrity to avoid dependencies like xxd
+              # We strip all whitespace to ensure the base64 string is clean
+              local integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A | tr -d '[:space:]')
+              
+              # For debugging, we also print the HEX value
+              local sha_hex
               if command -v sha512sum >/dev/null 2>&1; then
-                 # sha512sum output: <hex>  <filename>
-                 local sha_hex=$(sha512sum -b "$file" | awk '{print $1}')
-                 # Convert hex to base64
-                 integrity=$(echo -n "$sha_hex" | xxd -r -p | openssl base64 -A | tr -d '[:space:]')
-                 echo "Debug: Calculated SHA512 (hex) using sha512sum: $sha_hex"
+                 sha_hex=$(sha512sum -b "$file" | awk '{print $1}')
               else
-                 integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A | tr -d '[:space:]')
-                 # Decode back to hex for logging
-                 local sha_hex=$(echo -n "$integrity" | openssl base64 -d | od -A n -v -t x1 | tr -d '[:space:]')
-                 echo "Debug: Calculated SHA512 (hex) using openssl: $sha_hex"
+                 # Fallback to parsing openssl output. Format is usually "SHA512(file)= hex"
+                 sha_hex=$(openssl dgst -sha512 "$file" | sed 's/^.*= //')
               fi
               
-              # Log file details to help debug mismatch issues
+              echo "Debug: Calculated SHA512 (hex): $sha_hex"
               echo "Debug: File details for $filename:"
               ls -l "$file"
               echo "Debug: Integrity (base64): sha512-$integrity"
