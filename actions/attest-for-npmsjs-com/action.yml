@@ -40,17 +40,25 @@ runs:
               echo "Processing pre-packed file: $file"
               
               # Extract package.json from the tarball to get name and version
-              if ! tar -xzOf "$file" package/package.json > /tmp/package.json 2>/dev/null; then
+              # We use a unique temp file to avoid collisions if running in parallel (though this loop is serial)
+              local tmp_pkg_json=$(mktemp)
+              if ! tar -xzOf "$file" package/package.json > "$tmp_pkg_json" 2>/dev/null; then
                 echo "Warning: Failed to extract package.json from $file. Skipping."
+                rm -f "$tmp_pkg_json"
                 return
               fi
               
-              local pkg_name=$(jq -r '.name' /tmp/package.json)
-              local pkg_version=$(jq -r '.version' /tmp/package.json)
+              local pkg_name=$(jq -r '.name' "$tmp_pkg_json")
+              local pkg_version=$(jq -r '.version' "$tmp_pkg_json")
               local filename=$(basename "$file")
+              rm -f "$tmp_pkg_json"
               
               # Calculate the actual integrity hash from the file
-              local integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A)
+              # usage of openssl is safer than sha512sum which is not always available on macos
+              # We strip all whitespace to ensure the base64 string is clean
+              local integrity=$(openssl dgst -sha512 -binary "$file" | openssl base64 -A | tr -d '[:space:]')
+              
+              echo "Debug: Calculated integrity for $filename: sha512-$integrity"
               
               # Build JSON in the same format as npm pack --json
               json_output=$(jq -n \
@@ -64,8 +72,6 @@ runs:
                   "filename": $filename,
                   "integrity": $integrity
                 }]')
-              
-              rm -f /tmp/package.json
             else
               # Run 'npm pack' to generate the package tarball and output metadata in JSON format.
               # We suppress stderr to silently skip invalid packages or files that are not valid npm packages,
