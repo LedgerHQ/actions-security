@@ -131,7 +131,7 @@ runs:
              exit 1
           fi
 
-          # specific case of npm pack who return a list of list of object.
+          # specific case of npm pack which returns a list of lists of objects.
           # We want a flat list of object.
           # Combine all individual JSON array entries into a single list.
           jq -s 'add' packages_accumulated.json > packages_list.json
