@@ -80,8 +80,13 @@ process_package() {
 # Collect all attestations
 ATTESTATIONS_FILE=$(mktemp)
 
-# Iterate over packages in PACKAGES_LIST
-echo "${PACKAGES_LIST}" | jq -c '.[]' | while read -r pkg; do
+# Iterate over packages in PACKAGES_LIST_FILE
+if [ ! -f "${PACKAGES_LIST_FILE}" ]; then
+  echo "Error: PACKAGES_LIST_FILE (${PACKAGES_LIST_FILE}) not found"
+  exit 1
+fi
+
+jq -c '.[]' "${PACKAGES_LIST_FILE}" | while read -r pkg; do
     process_package "$pkg"
 done > "$ATTESTATIONS_FILE"
 
