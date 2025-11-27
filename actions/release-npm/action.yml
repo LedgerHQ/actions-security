@@ -8,13 +8,10 @@ inputs:
   cwd:
     description: "Sets the cwd for the node process"
     required: false
-  artifacts_path:
-    description: "Path to directory containing package tarballs to upload as release assets"
-    required: false
   setupGitUser:
     description: "Sets up the git user (deprecated, not used)"
     required: false
     default: "false"
 runs:
   using: "node20"
-  main: "release.js"
+  main: "dist/index.js"

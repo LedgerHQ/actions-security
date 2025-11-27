@@ -15,14 +15,11 @@ import { syncReleases } from "./run.js";
     process.chdir(inputCwd);
   }
 
-  const artifactsPath = core.getInput("artifacts_path");
-
   core.info("Syncing releases...");
   
   await syncReleases({
       githubToken,
       cwd: process.cwd(),
-      artifactsPath
   });
   
   core.info("Release sync complete.");
