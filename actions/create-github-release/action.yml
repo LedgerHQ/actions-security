@@ -1,5 +1,5 @@
-name: "Release NPM"
-description: "Create GitHub releases for npm packages based on Changelog"
+name: "Create GitHub Release"
+description: "Create GitHub releases for packages based on version and changelog (Changesets compatible)"
 inputs:
   github_token:
     description: "GitHub Token"
