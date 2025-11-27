@@ -1,0 +1,20 @@
+name: "Release NPM"
+description: "Create GitHub releases for npm packages based on Changelog"
+inputs:
+  github_token:
+    description: "GitHub Token"
+    required: true
+    default: ${{ github.token }}
+  cwd:
+    description: "Sets the cwd for the node process"
+    required: false
+  artifacts_path:
+    description: "Path to directory containing package tarballs to upload as release assets"
+    required: false
+  setupGitUser:
+    description: "Sets up the git user (deprecated, not used)"
+    required: false
+    default: "false"
+runs:
+  using: "node20"
+  main: "release.js"

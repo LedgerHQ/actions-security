@@ -1,0 +1,31 @@
+{
+  "name": "release-npm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.1",
+    "@changesets/get-release-plan": "^4.0.13",
+    "@changesets/pre": "^2.0.2",
+    "@changesets/read": "^0.6.5",
+    "@changesets/types": "^6.1.0",
+    "@manypkg/get-packages": "^3.1.0",
+    "@octokit/plugin-throttling": "^11.0.3",
+    "fs-extra": "^11.3.2",
+    "mdast-util-to-string": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "resolve-from": "^5.0.0",
+    "semver": "^7.7.3",
+    "unified": "^11.0.5"
+  },
+  "type": "module"
+}
