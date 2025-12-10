@@ -15,11 +15,14 @@ import { syncReleases } from "./run.js";
     process.chdir(inputCwd);
   }
 
+  const targetBranch = core.getInput("target_branch");
+
   core.info("Syncing releases...");
   
   await syncReleases({
       githubToken,
       cwd: process.cwd(),
+      targetBranch,
   });
   
   core.info("Release sync complete.");

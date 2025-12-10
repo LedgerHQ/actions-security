@@ -44,7 +44,7 @@ const setupOctokit = (githubToken) => {
 
 const createRelease = async (
   octokit,
-  { pkg, tagName }
+  { pkg, tagName, targetBranch }
 ) => {
   try {
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
@@ -65,6 +65,7 @@ const createRelease = async (
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
+      target_commitish: targetBranch || undefined,
       ...github.context.repo,
     });
     core.info(`Created release for ${tagName}`);
@@ -85,6 +86,7 @@ const createRelease = async (
 export async function syncReleases({
   githubToken,
   cwd = process.cwd(),
+  targetBranch,
 }) {
   const octokit = setupOctokit(githubToken);
   
@@ -97,13 +99,13 @@ export async function syncReleases({
      }
      let pkg = packages[0];
      let tagName = `v${pkg.packageJson.version}`;
-     await createRelease(octokit, { pkg, tagName });
+     await createRelease(octokit, { pkg, tagName, targetBranch });
   } else {
       for (let pkg of packages) {
           if (pkg.packageJson.private) continue; 
           
           let tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          await createRelease(octokit, { pkg, tagName });
+          await createRelease(octokit, { pkg, tagName, targetBranch });
       }
   }
 }

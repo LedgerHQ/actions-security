@@ -8,10 +8,10 @@ inputs:
   cwd:
     description: "Sets the cwd for the node process"
     required: false
-  setupGitUser:
-    description: "Sets up the git user (deprecated, not used)"
+  target_branch:
+    description: "The branch or commit SHA where the Git tag will be created from."
     required: false
-    default: "false"
+    default: "main"
 runs:
   using: "node20"
   main: "dist/index.js"
