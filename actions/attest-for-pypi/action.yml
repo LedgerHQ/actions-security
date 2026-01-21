@@ -16,10 +16,6 @@ inputs:
     description: 'The predicate content as a JSON string.'
     required: false
     default: '{}'
-  github_token:
-    description: 'GitHub Token (to be able to upload the attestation to the GitHub Attestation API).'
-    default: ${{ github.token }}
-    required: false
   upload-artifact:
     description: 'Whether to upload the attestation bundle as a workflow artifact.'
     required: false
@@ -47,7 +43,6 @@ runs:
         subject-path: ${{ inputs.subject-path }}
         predicate-type: ${{ inputs.predicate-type }}
         predicate: ${{ inputs.predicate }}
-        github-token: ${{ inputs.github_token }}
         show-summary: true
 
     - name: Upload attestation bundle as artifact
