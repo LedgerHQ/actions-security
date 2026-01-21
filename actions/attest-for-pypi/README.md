@@ -75,8 +75,6 @@ When publishing to PyPI using Trusted Publishers, the attestations are automatic
 | `subject-path` | <p>Path to the Python distribution files to attest (wheels, sdists). Supports glob patterns like "dist/*".</p> | `true` | `""` |
 | `predicate-type` | <p>The predicate type URI for the attestation.</p> | `false` | `https://docs.pypi.org/attestations/publish/v1` |
 | `predicate` | <p>The predicate content as a JSON string.</p> | `false` | `{}` |
-| `github_token` | <p>GitHub Token (to be able to upload the attestation to the GitHub Attestation API).</p> | `false` | `${{ github.token }}` |
-| `upload-artifact` | <p>Whether to upload the generated attestation bundle as a workflow artifact.</p> | `false` | `true` |
 <!-- action-docs-inputs source="action.yml" -->
 
 <!-- action-docs-outputs source="action.yml" -->
