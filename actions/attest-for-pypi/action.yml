@@ -16,10 +16,6 @@ inputs:
     description: 'The predicate content as a JSON string.'
     required: false
     default: '{}'
-  upload-artifact:
-    description: 'Whether to upload the attestation bundle as a workflow artifact.'
-    required: false
-    default: 'false'
 
 outputs:
   bundle-path:
@@ -44,10 +40,3 @@ runs:
         predicate-type: ${{ inputs.predicate-type }}
         predicate: ${{ inputs.predicate }}
         show-summary: true
-
-    - name: Upload attestation bundle as artifact
-      if: ${{ inputs.upload-artifact == 'true' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: pypi-attestation-bundle
-        path: ${{ steps.attest.outputs.bundle-path }}
