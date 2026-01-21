@@ -1,0 +1,46 @@
+name: "[Ledger Security] Attest a Python package for PyPI distribution"
+description: |
+  The `attest-for-pypi` GitHub Action generates PyPI-compatible attestations for Python packages using the Sigstore framework. This action produces attestations that are compatible with PyPI's Trusted Publisher workflow.
+
+  Designed for seamless integration within Ledger's CI/CD pipeline, this action creates cryptographic attestations using PyPI's publish attestation marker, enhancing the integrity and authenticity of your Python packages.
+
+inputs:
+  subject-path:
+    description: 'Path to the Python distribution files to attest (wheels, sdists). Supports glob patterns like "dist/*".'
+    required: true
+  predicate-type:
+    description: 'The predicate type URI for the attestation.'
+    required: false
+    default: 'https://docs.pypi.org/attestations/publish/v1'
+  predicate:
+    description: 'The predicate content as a JSON string.'
+    required: false
+    default: '{}'
+  github_token:
+    description: 'GitHub Token (to be able to upload the attestation to the GitHub Attestation API).'
+    default: ${{ github.token }}
+    required: false
+
+outputs:
+  bundle-path:
+    description: 'Path to the generated attestation bundle.'
+    value: ${{ steps.attest.outputs.bundle-path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check if repository is public (signatures may leak private information)
+      if: ${{ github.event.repository.visibility != 'public' }}
+      shell: bash
+      run: |
+        echo "::error::This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
+        exit 1
+
+    - name: Generate PyPI attestation
+      id: attest
+      uses: actions/attest@v2
+      with:
+        subject-path: ${{ inputs.subject-path }}
+        predicate-type: ${{ inputs.predicate-type }}
+        predicate: ${{ inputs.predicate }}
+        show-summary: true
