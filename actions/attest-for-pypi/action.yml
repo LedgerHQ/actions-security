@@ -26,7 +26,7 @@ runs:
   using: "composite"
   steps:
     - name: Check if repository is public (signatures may leak private information)
-      if: ${{ github.event.repository_visibility != 'public' }}
+      if: ${{ github.event.repository.private != false }}
       shell: bash
       run: |
         echo "::error::This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
