@@ -1,17 +1,46 @@
-# actions-security
-Github Action - Security actions and reusable workflow used at Ledger
+<div align="center">
+
+# 🔐 Actions Security
+
+**Security-focused GitHub Actions for Ledger's CI/CD pipelines**
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
+
+</div>
+
+---
+
+## Overview
+
+A collection of reusable GitHub Actions for automating **artifact signing**, **attestation**, **JFrog authentication**, and **security scanning** within Ledger's software supply chain.
 
 > [!TIP]
-> To benefit from the patch and minor upgrade, please use the major tag of the action that you are using
+> Use the major tag of each action (e.g., `uses: LedgerHQ/actions-security/actions/attest@actions/attest-1` in your workflow's `uses:` field) to automatically receive patch and minor updates.
 
 > [!IMPORTANT]
-> Theses actions can require to define custom permission inside the Github Action Workflow where they are use. Like, `id-token: write`or `attestations: write`, please refer to the documenation of each action to have more informations.
+> Some actions require workflow permissions like `id-token: write` or `attestations: write`. See each action's README for details.
 
-## Actions
+---
 
-| Path | Last major version | Usage |
-| ------------- | ------------- | ------------- |
-| [actions/jfrog-login](actions/jfrog-login) | `actions/jfrog-login-1` | The `jfrog-login` GitHub Action facilitates a secure login to Ledger's JFrog platform, which includes services such as **Artifactory** and **Xray**. By using OIDC authentication, this action ensures secure access to manage artifacts, perform security scans, and interact with the JFrog APIs and CLI without handling sensitive credentials manually.<br><br>This action is designed for seamless integration within Ledger's CI/CD pipeline, allowing developers to securely interact with JFrog services while automating critical parts of the software supply chain. |
-| [actions/attest](actions/attest) | `actions/attest-1` | The `attest` GitHub Action enables the generation and signing of provenance files using the **in-toto** attestation format. Leveraging OIDC authentication for keyless signing, this action securely creates verifiable metadata about your software artifacts without the need to manage sensitive signing keys manually.<br><br>Designed for seamless integration within Ledger's CI/CD pipeline, the `attest` action automates the creation of cryptographic attestations, enhancing the integrity, authenticity, and traceability of your software supply chain. By providing a secure method to verify the origin and build process of your artifacts, it helps safeguard against supply chain attacks and meets compliance requirements for software distribution. |
-| [actions/sign-blob](actions/sign-blob) | `actions/sign-blob-1` | The `sign-blob` GitHub Action enables secure, keyless signing of arbitrary data blobs using OIDC authentication based on GitHub's OIDC token. By eliminating the need to handle sensitive signing keys manually, this action allows developers to sign files, binaries, or other data artifacts securely within the CI/CD pipeline.<br><br>This action is designed for seamless integration within Ledger's CI/CD workflow, automating the signing process to enhance the security and integrity of your software artifacts. By providing a secure and automated method for signing data, it helps ensure the authenticity and non-repudiation of artifacts distributed through the software supply chain. |
-| [actions/sign-container](actions/sign-container) | `actions/sign-container-1` | The `sign-container` GitHub Action provides secure, keyless signing of container images with multiple tags using OIDC authentication based on GitHub's OIDC token. This action allows developers to sign container images without manually managing sensitive signing keys, enhancing the trust and integrity of containerized applications.<br><br>Designed for seamless integration within Ledger's CI/CD pipeline, the `sign-container` action automates the container signing process, ensuring that container images are securely signed and verifiable. By incorporating secure signing into your container deployment workflow, it helps protect against unauthorized modifications and ensures compliance with container security policies. |
+## Available Actions
+
+| Action | Version | Description |
+|--------|---------|-------------|
+| **[attest](actions/attest)** | `actions/attest-1` | Generate and sign provenance files using in-toto attestation with OIDC keyless signing |
+| **[attest-for-npmsjs-com](actions/attest-for-npmsjs-com)** | `actions/attest-for-npmsjs-com-1` | Generate SLSA provenance attestations for npm packages on npmjs.com |
+| **[sign-blob](actions/sign-blob)** | `actions/sign-blob-1` | Sign arbitrary files or binaries with OIDC keyless signing |
+| **[sign-container](actions/sign-container)** | `actions/sign-container-1` | Sign container images with multiple tags using OIDC keyless signing |
+| **[jfrog-login](actions/jfrog-login)** | `actions/jfrog-login-1` | Secure OIDC-based login to Ledger's JFrog platform (Artifactory & Xray) |
+| **[jfrog-npm](actions/jfrog-npm)** | `actions/jfrog-npm-1` | Configure `.npmrc` for npm/pnpm/yarn to authenticate with JFrog |
+| **[wiz-cli](actions/wiz-cli)** | `actions/wiz-cli-1` | Integrate with Wiz Cloud Security for IaC and container image scanning |
+
+---
+
+## Documentation
+
+Each action includes detailed documentation with usage examples in its respective `README.md`.
+
+## License
+
+[MIT License](LICENSE)
