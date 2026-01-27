@@ -16,7 +16,7 @@
 A collection of reusable GitHub Actions for automating **artifact signing**, **attestation**, **JFrog authentication**, and **security scanning** within Ledger's software supply chain.
 
 > [!TIP]
-> Use the major tag of each action (e.g., `@actions/attest-1`) to automatically receive patch and minor updates.
+> Use the major tag of each action (e.g., `uses: LedgerHQ/actions-security/actions/attest@actions/attest-1` in your workflow's `uses:` field) to automatically receive patch and minor updates.
 
 > [!IMPORTANT]
 > Some actions require workflow permissions like `id-token: write` or `attestations: write`. See each action's README for details.
