@@ -6,69 +6,59 @@ description: |
   Designed for seamless integration within Ledger's CI/CD pipeline, the `wiz-cli` action helps identify security issues early in the development lifecycle, ensuring compliance with security policies and best practices.
 
 inputs:
-  iac_path:
-    description: 'Path to the artifact, directory, or glob pattern to match files for IaC scan'
-    default: ""
   policy_iac:
     description: 'Policy to use for the IaC scan'
     default: ""
-  docker_tags:
-    description: 'List of tags to scan (based on the output of the docker/metadata-action)'
+  dir_path:
+    description: 'Path to the directory to scan for IaC'
     default: ""
-  policy_docker:
-    description: 'Policy to use for the Docker scan'
-    default: ""
-  wiz_client_id:
-    description: 'Wiz API client ID for authentication'
-    required: true
-  wiz_client_secret:
-    description: 'Wiz API client secret for authentication'
-    required: true
+  # TODO: Uncomment this when the Docker scan is ready with the new Wiz CLI v1.x
+  # policy_docker:
+  #   description: 'Policy to use for the Docker scan'
+  #   default: ""
     
 runs:
   using: "composite"
   steps:
     - name: Download Wiz CLI
       shell: bash
-      run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
-
-    - name: Authenticate to Wiz
-      shell: bash
-      run: ./wizcli auth --id "${{ inputs.wiz_client_id }}" --secret "${{ inputs.wiz_client_secret }}"
+      run: curl -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
 
     - name: Validate scan configuration
       shell: bash
       run: |
-        if [[ -z "${{ inputs.iac_path }}" && -z "${{ inputs.docker_tags }}" ]]; then
-          echo "Error: At least one scan type must be specified. Provide either 'iac_path' for IaC scanning or 'docker_tags' for Docker scanning."
+        if [[ -z "${{ inputs.iac_path }}" ]]; then
+          echo "Error: At least one scan type must be specified. Provide either 'dir_path' for IaC scanning."
           exit 1
         fi
 
     - name: Run wiz CLI IaC scan
-      if: ${{ inputs.iac_path != '' }}
+      if: ${{ inputs.dir_path != '' }}
       shell: bash
+      env:
+        WIZ_CLIENT_ID: ${{ inputs.wiz_client_id }}
+        WIZ_CLIENT_SECRET: ${{ inputs.wiz_client_secret }}
       run: |
-        SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
         if [[ -n "${{ inputs.policy_iac }}" ]]; then
-          ./wizcli iac scan --path "${{ inputs.iac_path }}" --discovered-resources --name "$SCAN_NAME" --policy "${{ inputs.policy_iac }}"
+          ./wizcli scan dir${{ inputs.dir_path }}" --policy "${{ inputs.policy_iac }}"
         else
-          ./wizcli iac scan --path "${{ inputs.iac_path }}" --discovered-resources --name "$SCAN_NAME"
+         ./wizcli scan dir ${{ inputs.dir_path }} 
         fi
 
-    - name: Run wiz-cli docker image scan
-      if: ${{ inputs.docker_tags != '' }}
-      shell: bash
-      run: |
-        SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
-        if [[ -n "${{ inputs.policy_docker }}" ]]; then
-          ./wizcli docker scan --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME" --policy "${{ inputs.policy_docker }}"
-        else
-          ./wizcli docker scan --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME"
-        fi
-
-    - name: Fetch digest of Docker image for Graph enrichment
-      if: ${{ inputs.docker_tags != '' }}
-      shell: bash
-      run: |
-        SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
-        ./wizcli docker tag --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME"
+    # TODO: Uncomment this when the Docker scan is ready with the new Wiz CLI v1.x
+    # - name: Run wiz-cli docker image scan
+    #   if: ${{ inputs.docker_tags != '' }}
+    #   shell: bash
+    #   run: |
+    #     SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
+    #     if [[ -n "${{ inputs.policy_docker }}" ]]; then
+    #       ./wizcli docker scan --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME" --policy "${{ inputs.policy_docker }}"
+    #     else
+    #       ./wizcli docker scan --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME"
+    #     fi
+    # - name: Fetch digest of Docker image for Graph enrichment
+    #   if: ${{ inputs.docker_tags != '' }}
+    #   shell: bash
+    #   run: |
+    #     SCAN_NAME="${{ github.repository }}-${{ github.ref }}"
+    #     ./wizcli docker tag --image "${{ inputs.docker_tags }}" --name "$SCAN_NAME"
