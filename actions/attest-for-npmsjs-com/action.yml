@@ -53,7 +53,7 @@ runs:
             PACKAGE_TARBALL="$SUBJECT_ABS"
 
           elif [ -d "$SUBJECT_ABS" ] && ls -1 "$SUBJECT_ABS"/*.tgz 1>/dev/null 2>&1; then
-            PACKAGE_TARBALL=$(ls -1 "$SUBJECT_ABS"/*.tgz | head -n 1)
+            PACKAGE_TARBALL=$(ls -1t "$SUBJECT_ABS"/*.tgz | head -n 1)
             echo "Found tarball in directory: $PACKAGE_TARBALL"
 
           elif [ -d "$SUBJECT_ABS" ] && [ -f "$SUBJECT_ABS/package.json" ]; then
