@@ -77,7 +77,7 @@ runs:
           PACKAGE_NAME=$(echo "$PACKAGE_JSON" | jq -r '.name')
           PACKAGE_VERSION=$(echo "$PACKAGE_JSON" | jq -r '.version')
           PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
-          PACKAGE_INTEGRITY="sha512-$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 -w0)"
+          PACKAGE_INTEGRITY="sha512-$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 | tr -d '\n')"
 
           echo "Package: \"$PACKAGE_NAME\"@\"$PACKAGE_VERSION\""
           echo "Filename: \"$PACKAGE_FILENAME\""
