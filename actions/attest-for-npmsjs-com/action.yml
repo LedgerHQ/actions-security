@@ -77,7 +77,7 @@ runs:
           fi
 
           # Extract metadata directly from the tarball without re-packing
-          PACKAGE_JSON=$(tar xzf "$PACKAGE_TARBALL" --to-stdout package/package.json)
+          PACKAGE_JSON=$(tar xzf "$PACKAGE_TARBALL" -O package/package.json)
           PACKAGE_NAME=$(echo "$PACKAGE_JSON" | jq -r '.name')
           PACKAGE_VERSION=$(echo "$PACKAGE_JSON" | jq -r '.version')
           PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
