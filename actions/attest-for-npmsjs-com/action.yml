@@ -58,7 +58,11 @@ runs:
 
           elif [ -d "$SUBJECT_ABS" ] && [ -f "$SUBJECT_ABS/package.json" ]; then
             echo "Found package.json in $SUBJECT_ABS, packing with $PACK_MANAGER..."
-            (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack --pack-destination .)
+            if [ "$PACK_MANAGER" = "pnpm" ]; then
+              (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack --pack-destination .)
+            else
+              (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack)
+            fi
             PACKAGE_TARBALL=$(ls -1t "$SUBJECT_ABS"/*.tgz 2>/dev/null | head -n 1)
             if [ -z "$PACKAGE_TARBALL" ]; then
               echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
