@@ -79,9 +79,9 @@ runs:
           PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
           PACKAGE_INTEGRITY="sha512-$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 -w0)"
 
-          echo "Package: $PACKAGE_NAME@$PACKAGE_VERSION"
-          echo "Filename: $PACKAGE_FILENAME"
-          echo "Integrity: $PACKAGE_INTEGRITY"
+          echo "Package: \"$PACKAGE_NAME\"@\"$PACKAGE_VERSION\""
+          echo "Filename: \"$PACKAGE_FILENAME\""
+          echo "Integrity: \"$PACKAGE_INTEGRITY\""
 
           echo "TARBALL_PATH=$(realpath "$PACKAGE_TARBALL")" >> $GITHUB_OUTPUT
           echo "PACKAGE_FILENAME=${PACKAGE_FILENAME}" >> $GITHUB_OUTPUT
