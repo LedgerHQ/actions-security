@@ -72,7 +72,7 @@ jobs:
           package-manager: pnpm
 
       # Publish the tarball that was attested (not a separately packed one)
-      - run: npm publish "${{ steps.attest.outputs.tarball-path }}" --attest-file ...
+      - run: npm publish "${{ steps.attest.outputs.tarball-path }}" --attest-file path/to/attestation.json
 ```
 
 <!-- action-docs-inputs source="action.yml" -->
