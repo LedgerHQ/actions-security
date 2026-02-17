@@ -1,13 +1,22 @@
 name: "[Ledger Security] Attest a npm package for npmjs.com distribution"
-description: ""
+description: "Attest a npm package for npmjs.com distribution. Supports pre-packed tarballs or directories with package.json."
 inputs:
   subject-path:
-    description: 'Path to the npm package to attest.'
+    description: 'Path to the npm package to attest. Can be a .tgz file, a directory containing .tgz files, or a directory with a package.json to pack.'
     required: true
+  package-manager:
+    description: 'Package manager to use for packing when subject-path is a directory with package.json (npm or pnpm). Defaults to npm.'
+    required: false
+    default: 'npm'
   github_token:
     description: 'GitHub Token (to be able to upload the attestation to the GitHub Attestation API).'
     default: ${{ github.token }}
     required: true
+
+outputs:
+  tarball-path:
+    description: 'Absolute path to the tarball that was attested.'
+    value: ${{ steps.package-details.outputs.TARBALL_PATH }}
 
 runs:
   using: "composite"
@@ -26,27 +35,63 @@ runs:
       - name: Auto-Detect - Package details
         id: package-details
         shell: bash
+        env:
+          SUBJECT_PATH: ${{ inputs.subject-path }}
+          PACK_MANAGER: ${{ inputs.package-manager }}
         run: |
-          if [ -f "${{ inputs.subject-path }}" ]; then
-            PACKAGE_PATH=${{ inputs.subject-path }}
-          else
-            PACKAGE_PATH=$(ls -1 ${{ inputs.subject-path }}/*.tgz | head -n 1)
+          if [ "$PACK_MANAGER" != "npm" ] && [ "$PACK_MANAGER" != "pnpm" ]; then
+            echo "::error::Unsupported package manager: $PACK_MANAGER. Use 'npm' or 'pnpm'."
+            exit 1
           fi
 
-          pack_json=$(npm pack $PACKAGE_PATH --json | tee pack.json | jq -c)
-          jq <pack.json
-          
-          PACKAGE_FILENAME=$(echo "$pack_json" | jq -r '.[0].filename')
-          PACKAGE_NAME=$(echo "$pack_json" | jq -r '.[0].name')
-          PACKAGE_VERSION=$(echo "$pack_json" | jq -r '.[0].version')
-          PACKAGE_INTEGRITY=$(echo "$pack_json" | jq -r '.[0].integrity')
+          # Resolve subject-path to absolute for consistent behavior
+          SUBJECT_ABS=$(realpath "$SUBJECT_PATH")
+
+          # Resolve the tarball path based on what was provided
+          if [ -f "$SUBJECT_ABS" ] && [[ "$SUBJECT_ABS" == *.tgz ]]; then
+            echo "Using existing tarball: $SUBJECT_ABS"
+            PACKAGE_TARBALL="$SUBJECT_ABS"
+
+          elif [ -d "$SUBJECT_ABS" ] && ls -1 "$SUBJECT_ABS"/*.tgz 1>/dev/null 2>&1; then
+            PACKAGE_TARBALL=$(ls -1 "$SUBJECT_ABS"/*.tgz | head -n 1)
+            echo "Found tarball in directory: $PACKAGE_TARBALL"
+
+          elif [ -d "$SUBJECT_ABS" ] && [ -f "$SUBJECT_ABS/package.json" ]; then
+            echo "Found package.json in $SUBJECT_ABS, packing with $PACK_MANAGER..."
+            (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack --pack-destination .)
+            PACKAGE_TARBALL=$(ls -1t "$SUBJECT_ABS"/*.tgz 2>/dev/null | head -n 1)
+            if [ -z "$PACKAGE_TARBALL" ]; then
+              echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
+              exit 1
+            fi
+            echo "Packed tarball: $PACKAGE_TARBALL"
+            echo "::warning::When packing from a directory, ensure you use the 'tarball-path' output to publish the exact same tarball that was attested."
+
+          else
+            echo "::error::No .tgz file or package.json found at: $SUBJECT_PATH"
+            exit 1
+          fi
+
+          # Extract metadata directly from the tarball without re-packing
+          PACKAGE_JSON=$(tar xzf "$PACKAGE_TARBALL" --to-stdout package/package.json)
+          PACKAGE_NAME=$(echo "$PACKAGE_JSON" | jq -r '.name')
+          PACKAGE_VERSION=$(echo "$PACKAGE_JSON" | jq -r '.version')
+          PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
+          PACKAGE_INTEGRITY="sha512-$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 -w0)"
+
+          echo "Package: $PACKAGE_NAME@$PACKAGE_VERSION"
+          echo "Filename: $PACKAGE_FILENAME"
+          echo "Integrity: $PACKAGE_INTEGRITY"
+
+          echo "TARBALL_PATH=$(realpath "$PACKAGE_TARBALL")" >> $GITHUB_OUTPUT
           echo "PACKAGE_FILENAME=${PACKAGE_FILENAME}" >> $GITHUB_OUTPUT
           echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
           echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
           echo "PACKAGE_INTEGRITY=${PACKAGE_INTEGRITY}" >> $GITHUB_OUTPUT
-      - name: Print all outputs of packges details
+      - name: Print all outputs of package details
         shell: bash
         run: |
+          echo "TARBALL_PATH=${{ steps.package-details.outputs.TARBALL_PATH }}"
           echo "PACKAGE_FILENAME=${{ steps.package-details.outputs.PACKAGE_FILENAME }}"
           echo "PACKAGE_NAME=${{ steps.package-details.outputs.PACKAGE_NAME }}"
           echo "PACKAGE_VERSION=${{ steps.package-details.outputs.PACKAGE_VERSION }}"
