@@ -58,11 +58,7 @@ runs:
 
           elif [ -d "$SUBJECT_ABS" ] && [ -f "$SUBJECT_ABS/package.json" ]; then
             echo "Found package.json in $SUBJECT_ABS, packing with $PACK_MANAGER..."
-            if [ "$PACK_MANAGER" = "pnpm" ]; then
-              (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack --pack-destination .)
-            else
-              (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack)
-            fi
+            (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack)
             PACKAGE_TARBALL=$(ls -1t "$SUBJECT_ABS"/*.tgz 2>/dev/null | head -n 1)
             if [ -z "$PACKAGE_TARBALL" ]; then
               echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
@@ -87,11 +83,24 @@ runs:
           echo "Filename: \"$PACKAGE_FILENAME\""
           echo "Integrity: \"$PACKAGE_INTEGRITY\""
 
-          echo "TARBALL_PATH=$(realpath "$PACKAGE_TARBALL")" >> $GITHUB_OUTPUT
-          echo "PACKAGE_FILENAME=${PACKAGE_FILENAME}" >> $GITHUB_OUTPUT
-          echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
-          echo "PACKAGE_INTEGRITY=${PACKAGE_INTEGRITY}" >> $GITHUB_OUTPUT
+          EOF_MARKER=$(uuidgen)
+          {
+            echo "TARBALL_PATH<<${EOF_MARKER}"
+            realpath "$PACKAGE_TARBALL"
+            echo "${EOF_MARKER}"
+            echo "PACKAGE_FILENAME<<${EOF_MARKER}"
+            echo "$PACKAGE_FILENAME"
+            echo "${EOF_MARKER}"
+            echo "PACKAGE_NAME<<${EOF_MARKER}"
+            echo "$PACKAGE_NAME"
+            echo "${EOF_MARKER}"
+            echo "PACKAGE_VERSION<<${EOF_MARKER}"
+            echo "$PACKAGE_VERSION"
+            echo "${EOF_MARKER}"
+            echo "PACKAGE_INTEGRITY<<${EOF_MARKER}"
+            echo "$PACKAGE_INTEGRITY"
+            echo "${EOF_MARKER}"
+          } >> "$GITHUB_OUTPUT"
       - name: Print all outputs of package details
         shell: bash
         run: |
