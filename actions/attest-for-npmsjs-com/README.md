@@ -93,6 +93,29 @@ jobs:
 | `tarball-path` | Absolute path to the tarball that was attested. Use this path for publishing to ensure the checksum matches. |
 <!-- action-docs-outputs source="action.yml" -->
 
+## Known Issue: pnpm pack + pnpm publish integrity mismatch
+
+When using `pnpm pack` (or `package-manager: pnpm` in this action) to create the tarball **and** `pnpm publish <tarball>` to publish it, the integrity check may fail on certain registries.
+
+**Observed behavior:**
+- Publishing to **GitHub Packages** (npm) works, but the published `package.json` contains a `packageManager` field injected by pnpm.
+- Publishing to **JFrog Artifactory** fails because the `packageManager` field is absent from the published package, suggesting `pnpm publish` re-packs the tarball using npm internally before uploading to non-GitHub registries.
+
+This means the tarball bytes that arrive at the registry differ from the attested tarball, causing an integrity mismatch.
+
+**Workaround:** Use `npm` (default) as the `package-manager` for the attestation step, even if your project uses pnpm. The `npm pack` output is compatible with `pnpm publish`:
+
+```yaml
+- name: Attest for npmjs.com
+  id: attest
+  uses: LedgerHQ/actions-security/actions/attest-for-npmsjs-com@actions/attest-for-npmsjs-com-1
+  with:
+    subject-path: path/to/my/package
+    package-manager: npm  # Use npm to pack even in pnpm projects
+
+- run: pnpm publish "${{ steps.attest.outputs.tarball-path }}" --no-git-checks
+```
+
 ## How It Works
 
 1. **Resolves the tarball**: accepts a `.tgz` file directly, a directory containing `.tgz` files, or a directory with `package.json` (packs it with the specified package manager).
