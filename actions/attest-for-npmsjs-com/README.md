@@ -93,17 +93,61 @@ jobs:
 | `tarball-path` | Absolute path to the tarball that was attested. Use this path for publishing to ensure the checksum matches. |
 <!-- action-docs-outputs source="action.yml" -->
 
-## Known Issue: pnpm pack + pnpm publish integrity mismatch
+## Pack/Publish Compatibility Matrix
 
-When using `pnpm pack` (or `package-manager: pnpm` in this action) to create the tarball **and** `pnpm publish <tarball>` to publish it, the integrity check may fail on certain registries.
+The attestation is computed on the **exact bytes** of the tarball. If the publish step re-packs the tarball, the bytes change and the attestation will not match.
 
-**Observed behavior:**
-- Publishing to **GitHub Packages** (npm) works, but the published `package.json` contains a `packageManager` field injected by pnpm.
-- Publishing to **JFrog Artifactory** fails because the `packageManager` field is absent from the published package, suggesting `pnpm publish` re-packs the tarball using npm internally before uploading to non-GitHub registries.
+The following matrix was verified locally (npm 10.9.4, pnpm 9.6.0) by packing, publishing to JFrog, downloading the published tarball, and comparing checksums. The behavior should be consistent for **npm 7+** and **pnpm 8+**.
 
-This means the tarball bytes that arrive at the registry differ from the attested tarball, causing an integrity mismatch.
+The "npmjs.com matches?" column shows what happens when `api-oss-software-supply-chain` republishes from JFrog to npmjs.com using `npm publish <tarball>`. Since `npm publish <tarball>` always preserves bytes, the npmjs.com result is identical to whatever is on JFrog.
 
-**Workaround:** Use `npm` (default) as the `package-manager` for the attestation step, even if your project uses pnpm. The `npm pack` output is compatible with `pnpm publish`:
+### Full matrix
+
+| # | Pack with | Publish to JFrog with | JFrog matches attestation? | npmjs.com matches? (via `npm publish <tarball>`) | `package.json` on JFrog |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `npm pack` | `npm publish <tarball>` | **Yes** | **Yes** | npm-style (unchanged) |
+| 2 | `npm pack` | `npm publish` (from dir) | **Yes** | **Yes** | npm-style (npm re-packs identically) |
+| 3 | `npm pack` | `pnpm publish <tarball>` | **Yes** | **Yes** | npm-style (unchanged) |
+| 4 | `npm pack` | `pnpm publish` (from dir) | **No** | **No** | pnpm-style: `scripts` moved to end, `packageManager` stripped |
+| 5 | `pnpm pack` | `npm publish <tarball>` | **Yes** | **Yes** | pnpm-style (unchanged) |
+| 6 | `pnpm pack` | `npm publish` (from dir) | **No** | **No** | npm-style: `scripts` restored, `packageManager` added back |
+| 7 | `pnpm pack` | `pnpm publish <tarball>` | **No** | **No** | npm-style: `scripts` restored, `packageManager` added back |
+| 8 | `pnpm pack` | `pnpm publish` (from dir) | **Yes** | **Yes** | pnpm-style (pnpm re-packs identically) |
+
+### Key observations
+
+**`publish <tarball>` behavior:**
+- `npm publish <tarball>` always sends the tarball bytes as-is (tests 1, 5).
+- `pnpm publish <tarball>` preserves npm-packed tarballs (test 3) but **re-packs pnpm-packed tarballs** to npm-style (test 7).
+
+**`publish` from directory behavior:**
+- Both `npm publish` and `pnpm publish` from a directory re-pack from source using their own serialization.
+- `npm publish` from dir produces identical output to `npm pack` (test 2).
+- `pnpm publish` from dir produces identical output to `pnpm pack` (test 8).
+
+**What changes between npm-style and pnpm-style `package.json`:**
+- **npm-style**: `scripts` at original position in the JSON, `packageManager` field preserved.
+- **pnpm-style**: `scripts` moved to the end of the JSON object, `packageManager` field stripped.
+
+### Safe combinations for attestation
+
+For attestation integrity, you must ensure the tarball bytes are identical between pack (attest) and publish. The safe options are:
+
+- `npm pack` + `npm publish <tarball>` (test 1) -- recommended
+- `npm pack` + `npm publish` from dir (test 2)
+- `npm pack` + `pnpm publish <tarball>` (test 3)
+- `pnpm pack` + `npm publish <tarball>` (test 5)
+- `pnpm pack` + `pnpm publish` from dir (test 8)
+
+### Warning: `.tgz` files inside the tarball
+
+If the packed tarball contains a `.tgz` file inside the `package/` directory, `api-oss-software-supply-chain` will treat it as a wrapper and extract the inner `.tgz` to use for publishing instead of the original tarball. This will cause a digest mismatch with the attestation.
+
+Make sure your `package.json` `files` field does not include `.tgz` files, and that no `.tgz` files are present in the directories being packed.
+
+### Recommendation
+
+Use `npm pack` (or `package-manager: npm` in this action) and publish with `npm publish <tarball>` or `pnpm publish <tarball>`:
 
 ```yaml
 - name: Attest for npmjs.com
@@ -111,9 +155,9 @@ This means the tarball bytes that arrive at the registry differ from the atteste
   uses: LedgerHQ/actions-security/actions/attest-for-npmsjs-com@actions/attest-for-npmsjs-com-1
   with:
     subject-path: path/to/my/package
-    package-manager: npm  # Use npm to pack even in pnpm projects
 
-- run: pnpm publish "${{ steps.attest.outputs.tarball-path }}" --no-git-checks
+# Publish the exact attested tarball to JFrog
+- run: npm publish "${{ steps.attest.outputs.tarball-path }}"
 ```
 
 ## How It Works
