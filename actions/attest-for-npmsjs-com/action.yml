@@ -2,10 +2,10 @@ name: "[Ledger Security] Attest a npm package for npmjs.com distribution"
 description: "Attest a npm package for npmjs.com distribution. Supports pre-packed tarballs or directories with package.json."
 inputs:
   subject-path:
-    description: 'Path to the npm package to attest. Can be a .tgz file, a directory containing .tgz files, or a directory with a package.json to pack.'
+    description: 'Path to the npm package to attest. Can be a .tgz file, a directory containing .tgz files (most recent selected), or a directory with a package.json to pack when no .tgz files are present.'
     required: true
   package-manager:
-    description: 'Package manager to use for packing when subject-path is a directory with package.json (npm or pnpm). Defaults to npm.'
+    description: 'Package manager to use for packing when subject-path is a directory with package.json and no .tgz files are present (npm or pnpm). Defaults to npm.'
     required: false
     default: 'npm'
   github_token:
@@ -25,10 +25,10 @@ runs:
         if: ${{ github.event.repository.visibility != 'public' }}
         shell: bash
         run: |
-          echo "::error This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
+          echo "::error::This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
           exit 1
       - name: Set GitHub Path
-        run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+        run: echo "$GITHUB_ACTION_PATH" >> "$GITHUB_PATH"
         shell: bash
         env:
           GITHUB_ACTION_PATH: ${{ github.action_path }}
@@ -39,54 +39,143 @@ runs:
           SUBJECT_PATH: ${{ inputs.subject-path }}
           PACK_MANAGER: ${{ inputs.package-manager }}
         run: |
+          set -euo pipefail
+
           if [ "$PACK_MANAGER" != "npm" ] && [ "$PACK_MANAGER" != "pnpm" ]; then
             echo "::error::Unsupported package manager: $PACK_MANAGER. Use 'npm' or 'pnpm'."
             exit 1
           fi
 
+          if [ ! -e "$SUBJECT_PATH" ]; then
+            echo "::error::Provided subject-path does not exist: $SUBJECT_PATH"
+            exit 1
+          fi
+
           # Resolve subject-path to absolute for consistent behavior
           SUBJECT_ABS=$(realpath "$SUBJECT_PATH")
+          SELECT_NEWEST_TGZ_PATH=""
+          SELECT_NEWEST_TGZ_WARNING=""
 
-          # Resolve the tarball path based on what was provided
+          select_newest_tgz() {
+            local search_dir="$1"
+            local -a tgz_files=()
+            local newest_file
+            local file
+
+            shopt -s nullglob
+            tgz_files=("$search_dir"/*.tgz)
+            shopt -u nullglob
+
+            if [ "${#tgz_files[@]}" -eq 0 ]; then
+              SELECT_NEWEST_TGZ_PATH=""
+              SELECT_NEWEST_TGZ_WARNING=""
+              return 1
+            fi
+
+            newest_file="${tgz_files[0]}"
+            for file in "${tgz_files[@]:1}"; do
+              if [ "$file" -nt "$newest_file" ]; then
+                newest_file="$file"
+              fi
+            done
+
+            if [ "${#tgz_files[@]}" -gt 1 ]; then
+              SELECT_NEWEST_TGZ_WARNING="::warning::Multiple .tgz files found in $search_dir. Using the most recently modified tarball: $(basename "$newest_file")."
+            else
+              SELECT_NEWEST_TGZ_WARNING=""
+            fi
+
+            SELECT_NEWEST_TGZ_PATH="$newest_file"
+          }
+
+          # Resolve the tarball path based on what was provided.
+          # For directory inputs, existing .tgz files take precedence over packing from package.json.
           if [ -f "$SUBJECT_ABS" ] && [[ "$SUBJECT_ABS" == *.tgz ]]; then
             echo "Using existing tarball: $SUBJECT_ABS"
             PACKAGE_TARBALL="$SUBJECT_ABS"
 
-          elif [ -d "$SUBJECT_ABS" ] && ls -1 "$SUBJECT_ABS"/*.tgz 1>/dev/null 2>&1; then
-            PACKAGE_TARBALL=$(ls -1t "$SUBJECT_ABS"/*.tgz | head -n 1)
-            echo "Found tarball in directory: $PACKAGE_TARBALL"
+          elif [ -d "$SUBJECT_ABS" ]; then
+            if select_newest_tgz "$SUBJECT_ABS"; then
+              PACKAGE_TARBALL="$SELECT_NEWEST_TGZ_PATH"
+              if [ -n "$SELECT_NEWEST_TGZ_WARNING" ]; then
+                echo "$SELECT_NEWEST_TGZ_WARNING"
+              fi
+              if [ -f "$SUBJECT_ABS/package.json" ]; then
+                echo "::warning::Both .tgz files and package.json were found in $SUBJECT_ABS. Using existing .tgz tarball."
+              fi
+              echo "Found tarball in directory: $PACKAGE_TARBALL"
 
-          elif [ -d "$SUBJECT_ABS" ] && [ -f "$SUBJECT_ABS/package.json" ]; then
-            echo "Found package.json in $SUBJECT_ABS, packing with $PACK_MANAGER..."
-            (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack)
-            PACKAGE_TARBALL=$(ls -1t "$SUBJECT_ABS"/*.tgz 2>/dev/null | head -n 1)
-            if [ -z "$PACKAGE_TARBALL" ]; then
-              echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
+            elif [ -f "$SUBJECT_ABS/package.json" ]; then
+              echo "Found package.json in $SUBJECT_ABS, packing with $PACK_MANAGER..."
+              if ! (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack); then
+                echo "::error::$PACK_MANAGER pack failed in $SUBJECT_ABS"
+                exit 1
+              fi
+              if ! select_newest_tgz "$SUBJECT_ABS"; then
+                echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
+                exit 1
+              fi
+              PACKAGE_TARBALL="$SELECT_NEWEST_TGZ_PATH"
+              if [ -n "$SELECT_NEWEST_TGZ_WARNING" ]; then
+                echo "$SELECT_NEWEST_TGZ_WARNING"
+              fi
+              echo "Packed tarball: $PACKAGE_TARBALL"
+              echo "::warning::When packing from a directory, ensure you use the 'tarball-path' output to publish the exact same tarball that was attested."
+
+            else
+              echo "::error::No .tgz file or package.json found at: $SUBJECT_PATH"
               exit 1
             fi
-            echo "Packed tarball: $PACKAGE_TARBALL"
-            echo "::warning::When packing from a directory, ensure you use the 'tarball-path' output to publish the exact same tarball that was attested."
 
           else
-            echo "::error::No .tgz file or package.json found at: $SUBJECT_PATH"
+            echo "::error::subject-path must point to a .tgz file, a directory containing .tgz files, or a directory with package.json: $SUBJECT_PATH"
             exit 1
           fi
 
           # Extract metadata directly from the tarball without re-packing
-          PACKAGE_JSON=$(tar xzf "$PACKAGE_TARBALL" -O package/package.json)
-          PACKAGE_NAME=$(echo "$PACKAGE_JSON" | jq -r '.name')
-          PACKAGE_VERSION=$(echo "$PACKAGE_JSON" | jq -r '.version')
+          if ! PACKAGE_JSON=$(tar xzf "$PACKAGE_TARBALL" -O package/package.json 2>/dev/null); then
+            echo "::error::Failed to extract package/package.json from tarball: $PACKAGE_TARBALL"
+            exit 1
+          fi
+          if [ -z "$PACKAGE_JSON" ]; then
+            echo "::error::package/package.json was not found or is empty in tarball: $PACKAGE_TARBALL"
+            exit 1
+          fi
+
+          if ! PACKAGE_NAME=$(jq -er '.name' <<<"$PACKAGE_JSON"); then
+            echo "::error::Failed to parse package name from package/package.json in tarball: $PACKAGE_TARBALL"
+            exit 1
+          fi
+          if ! PACKAGE_VERSION=$(jq -er '.version' <<<"$PACKAGE_JSON"); then
+            echo "::error::Failed to parse package version from package/package.json in tarball: $PACKAGE_TARBALL"
+            exit 1
+          fi
+
           PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
-          PACKAGE_INTEGRITY="sha512-$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 | tr -d '\n')"
+          if ! PACKAGE_SHA512=$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 | tr -d '\n'); then
+            echo "::error::Failed to compute sha512 for tarball: $PACKAGE_TARBALL"
+            exit 1
+          fi
+          if [ -z "$PACKAGE_SHA512" ]; then
+            echo "::error::Computed empty sha512 for tarball: $PACKAGE_TARBALL"
+            exit 1
+          fi
+          PACKAGE_INTEGRITY="sha512-${PACKAGE_SHA512}"
 
           echo "Package: \"$PACKAGE_NAME\"@\"$PACKAGE_VERSION\""
           echo "Filename: \"$PACKAGE_FILENAME\""
           echo "Integrity: \"$PACKAGE_INTEGRITY\""
 
-          EOF_MARKER=$(uuidgen)
+          EOF_MARKER=$(uuidgen || true)
+          if [ -z "$EOF_MARKER" ]; then
+            echo "::error::Failed to generate a safe delimiter for GITHUB_OUTPUT."
+            exit 1
+          fi
+
+          TARBALL_ABS=$(realpath "$PACKAGE_TARBALL")
           {
             echo "TARBALL_PATH<<${EOF_MARKER}"
-            realpath "$PACKAGE_TARBALL"
+            echo "$TARBALL_ABS"
             echo "${EOF_MARKER}"
             echo "PACKAGE_FILENAME<<${EOF_MARKER}"
             echo "$PACKAGE_FILENAME"
@@ -112,14 +201,14 @@ runs:
       - name: Generate the Predicate
         shell: bash
         env:
-          BUILDER_ID: ${{ github.workflow_ref }} # Buid is made on the same job
+          BUILDER_ID: ${{ github.workflow_ref }} # Build is made on the same job
           CONFIG_SOURCE_URI: git+${{ github.event.repository.html_url }}@${{ github.ref }}
           CONFIG_SOURCE_DIGEST: ${{ github.sha }}
           GITHUB_ACTOR_ID: ${{ github.actor_id }}
           GITHUB_TRIGGERING_ACTOR_ID: ${{ github.triggering_actor }}
           GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          GITHUB_REPOSITORY_OWNER_ID: ${{ github.repository_owner_id}}
+          GITHUB_REPOSITORY_OWNER_ID: ${{ github.repository_owner_id }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
@@ -158,12 +247,23 @@ runs:
         shell: bash
         id: scan-attestations-signed
         run: |
-          ATTESTATION_SIGNED_PATH=$(ls -1 ./attestations-signed/*.build.slsa | head -n 1)
-          if [ -z "$ATTESTATION_SIGNED_PATH" ]; then
-            echo "Error: No attestation signed files found in the ./attestations-signed directory."
+          set -euo pipefail
+
+          shopt -s nullglob
+          attestation_files=(./attestations-signed/*.build.slsa)
+          shopt -u nullglob
+
+          if [ "${#attestation_files[@]}" -eq 0 ]; then
+            echo "::error::No signed attestation files found in ./attestations-signed."
             exit 1
           fi
-          echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> $GITHUB_OUTPUT
+
+          ATTESTATION_SIGNED_PATH="${attestation_files[0]}"
+          if [ "${#attestation_files[@]}" -gt 1 ]; then
+            echo "::warning::Multiple signed attestation files found. Uploading: $ATTESTATION_SIGNED_PATH"
+          fi
+
+          echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> "$GITHUB_OUTPUT"
       - name: Upload Attestation to the Github API
         uses: actions/github-script@v6
         env:
