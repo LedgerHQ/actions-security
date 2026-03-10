@@ -85,7 +85,6 @@ jobs:
 | --- | --- | --- | --- |
 | `subject-path` | Path to the npm package to attest. Can be a `.tgz` file, a directory containing `.tgz` files (the most recently modified file is selected), or a directory with a `package.json` to pack when no `.tgz` files are present. If both `.tgz` files and `package.json` exist, `.tgz` files take precedence. | `true` | `""` |
 | `package-manager` | Package manager to use for packing when `subject-path` is a directory with `package.json` and no `.tgz` files are present (`npm` or `pnpm`). Any other value fails. | `false` | `npm` |
-| `github_token` | GitHub Token (to be able to upload the attestation to the GitHub Attestation API). | `true` | `${{ github.token }}` |
 <!-- action-docs-inputs source="action.yml" -->
 
 <!-- action-docs-outputs source="action.yml" -->

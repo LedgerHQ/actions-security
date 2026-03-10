@@ -8,10 +8,6 @@ inputs:
     description: 'Package manager to use for packing when subject-path is a directory with package.json and no .tgz files are present (npm or pnpm). Defaults to npm.'
     required: false
     default: 'npm'
-  github_token:
-    description: 'GitHub Token (to be able to upload the attestation to the GitHub Attestation API).'
-    default: ${{ github.token }}
-    required: true
 
 outputs:
   tarball-path:
@@ -270,7 +266,6 @@ runs:
           ATTESTATION_PATH: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         with:
-          github-token: ${{ inputs.github_token }}
           script: |
             const fs = require('fs');
             const attestationPath = process.env.ATTESTATION_PATH;
