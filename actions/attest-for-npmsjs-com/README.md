@@ -15,6 +15,7 @@ To enable this action to work properly, ensure the following permissions are set
 ```yaml
 permissions:
     id-token: write
+    attestations: write
 ```
 
 ### Important: Tarball Identity
@@ -33,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
 
@@ -61,6 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
 

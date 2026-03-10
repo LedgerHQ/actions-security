@@ -270,6 +270,7 @@ runs:
           ATTESTATION_PATH: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         with:
+          github-token: ${{ inputs.github_token }}
           script: |
             const fs = require('fs');
             const attestationPath = process.env.ATTESTATION_PATH;
