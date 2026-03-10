@@ -254,10 +254,12 @@ runs:
             exit 1
           fi
 
-          ATTESTATION_SIGNED_PATH="${attestation_files[0]}"
           if [ "${#attestation_files[@]}" -gt 1 ]; then
-            echo "::warning::Multiple signed attestation files found. Uploading: $ATTESTATION_SIGNED_PATH"
+            echo "::error::Expected exactly one signed attestation but found ${#attestation_files[@]}: ${attestation_files[*]}"
+            exit 1
           fi
+
+          ATTESTATION_SIGNED_PATH="${attestation_files[0]}"
 
           echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> "$GITHUB_OUTPUT"
       - name: Upload Attestation to the Github API
