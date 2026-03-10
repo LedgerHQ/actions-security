@@ -1,5 +1,5 @@
-name: "[Ledger Security] Attest a npm package for npmjs.com distribution"
-description: "Attest a npm package for npmjs.com distribution. Supports pre-packed tarballs or directories with package.json."
+name: "[Ledger Security] Attest an npm package for npmjs.com distribution"
+description: "Attest an npm package for npmjs.com distribution. Supports pre-packed tarballs or directories with package.json."
 inputs:
   subject-path:
     description: 'Path to the npm package to attest. Can be a .tgz file, a directory containing .tgz files (most recent selected), or a directory with a package.json to pack when no .tgz files are present.'
@@ -166,7 +166,7 @@ runs:
           echo "Filename: \"$PACKAGE_FILENAME\""
           echo "Integrity: \"$PACKAGE_INTEGRITY\""
 
-          EOF_MARKER=$(uuidgen || true)
+          EOF_MARKER=$(openssl rand -hex 16 2>/dev/null || python3 -c 'import uuid; print(uuid.uuid4().hex)' 2>/dev/null || echo "EOF_$(date +%s%N)_$$")
           if [ -z "$EOF_MARKER" ]; then
             echo "::error::Failed to generate a safe delimiter for GITHUB_OUTPUT."
             exit 1

@@ -2,7 +2,7 @@
 
 <!-- action-docs-description source="action.yml" -->
 
-Attest a npm package for npmjs.com distribution. Supports pre-packed tarballs or directories with package.json.
+Attest an npm package for npmjs.com distribution. Supports pre-packed tarballs or directories with package.json.
 
 <!-- action-docs-description source="action.yml" -->
 
