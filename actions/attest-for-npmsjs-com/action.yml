@@ -23,6 +23,15 @@ runs:
         run: |
           echo "::error::This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
           exit 1
+      # TODO: This restriction can be dropped once npmjs.com accepts attestations from self-hosted runners.
+      - name: Check if running on a GitHub-hosted runner
+        if: ${{ runner.environment != 'github-hosted' }}
+        shell: bash
+        env:
+          RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: |
+          echo "::error::This action must run on a GitHub-hosted runner. npmjs.com provenance verification rejects attestations generated on self-hosted runners (Runner Environment: \"$RUNNER_ENVIRONMENT\")."
+          exit 1
       - name: Set GitHub Path
         run: echo "$GITHUB_ACTION_PATH" >> "$GITHUB_PATH"
         shell: bash
@@ -146,6 +155,24 @@ runs:
             echo "::error::Failed to parse package version from package/package.json in tarball: $PACKAGE_TARBALL"
             exit 1
           fi
+
+          EXPECTED_REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+
+          REPO_URL=$(jq -r '.repository.url // ""' <<<"$PACKAGE_JSON")
+
+          if [ -z "$REPO_URL" ]; then
+            echo "::error::package.json is missing \"repository.url\". npmjs.com provenance verification requires it to match \"${EXPECTED_REPO_URL}\". Add to your package.json: \"repository\": { \"type\": \"git\", \"url\": \"${EXPECTED_REPO_URL}\" }"
+            exit 1
+          fi
+
+          NORMALIZED_REPO_URL=$(echo "$REPO_URL" | sed -E 's|^git\+||; s|\.git$||')
+
+          if [ "$NORMALIZED_REPO_URL" != "$EXPECTED_REPO_URL" ]; then
+            echo "::error::package.json \"repository.url\" is \"${REPO_URL}\" (normalized: \"${NORMALIZED_REPO_URL}\"), expected \"${EXPECTED_REPO_URL}\". This mismatch will cause an E422 from npmjs.com."
+            exit 1
+          fi
+
+          echo "Validated: repository.url matches expected provenance source."
 
           PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
           if ! PACKAGE_SHA512=$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 | tr -d '\n'); then
