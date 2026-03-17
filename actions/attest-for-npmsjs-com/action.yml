@@ -168,7 +168,7 @@ runs:
             exit 1
           fi
 
-          NORMALIZED_REPO_URL=$(echo "$REPO_URL" | sed -E 's|^git\+||; s|\.git$||')
+          NORMALIZED_REPO_URL=$(printf '%s' "$REPO_URL" | sed -E 's|^git\+||; s|#.*$||; s|\.git$||; s|/*$||')
 
           if [ "$NORMALIZED_REPO_URL" != "$EXPECTED_REPO_URL" ]; then
             echo "::error::package.json \"repository.url\" is \"${REPO_URL}\" (normalized: \"${NORMALIZED_REPO_URL}\"), but provenance expects \"${EXPECTED_REPO_URL}\". This will cause an E422 from npmjs.com. Fix the \"repository.url\" in your package.json."
