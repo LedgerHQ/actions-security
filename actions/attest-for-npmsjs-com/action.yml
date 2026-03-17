@@ -23,6 +23,13 @@ runs:
         run: |
           echo "::error::This action only runs on public repositories. To avoid leaking private information, the action will be stopped."
           exit 1
+      # TODO: This restriction can be dropped once npmjs.com accepts attestations from self-hosted runners.
+      - name: Check if running on a GitHub-hosted runner
+        if: ${{ runner.environment != 'github-hosted' }}
+        shell: bash
+        run: |
+          echo "::error::This action must run on a GitHub-hosted runner. npmjs.com provenance verification rejects attestations generated on self-hosted runners (Runner Environment: \"$RUNNER_ENVIRONMENT\")."
+          exit 1
       - name: Set GitHub Path
         run: echo "$GITHUB_ACTION_PATH" >> "$GITHUB_PATH"
         shell: bash
