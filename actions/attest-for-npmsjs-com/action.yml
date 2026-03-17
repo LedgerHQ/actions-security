@@ -164,18 +164,18 @@ runs:
           ' <<<"$PACKAGE_JSON")
 
           if [ -z "$REPO_URL" ]; then
-            echo "::error::package.json is missing the \"repository\" field. npmjs.com provenance verification requires \"repository.url\" to match \"${EXPECTED_REPO_URL}\". Add to your package.json: \"repository\": { \"type\": \"git\", \"url\": \"${EXPECTED_REPO_URL}\" }"
+            echo "::error::package.json is missing a repository URL (\"repository\" string or \"repository.url\"). npmjs.com provenance verification requires the repository URL to match \"${EXPECTED_REPO_URL}\". Set in your package.json either \"repository\": \"${EXPECTED_REPO_URL}\" or \"repository\": { \"type\": \"git\", \"url\": \"${EXPECTED_REPO_URL}\" }."
             exit 1
           fi
 
           NORMALIZED_REPO_URL=$(printf '%s' "$REPO_URL" | sed -E 's|^git\+||; s|#.*$||; s|\.git$||; s|/*$||')
 
           if [ "$NORMALIZED_REPO_URL" != "$EXPECTED_REPO_URL" ]; then
-            echo "::error::package.json \"repository.url\" is \"${REPO_URL}\" (normalized: \"${NORMALIZED_REPO_URL}\"), but provenance expects \"${EXPECTED_REPO_URL}\". This will cause an E422 from npmjs.com. Fix the \"repository.url\" in your package.json."
+            echo "::error::package.json repository URL is \"${REPO_URL}\" (normalized: \"${NORMALIZED_REPO_URL}\"), but provenance expects \"${EXPECTED_REPO_URL}\". This will cause an E422 from npmjs.com. Fix the \"repository\" field in your package.json so its URL matches."
             exit 1
           fi
 
-          echo "Validated: repository.url matches expected provenance source."
+          echo "Validated: repository URL matches expected provenance source."
 
           PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
           if ! PACKAGE_SHA512=$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 | tr -d '\n'); then
