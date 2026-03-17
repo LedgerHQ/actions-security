@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/LedgerHQ/actions-security/compare/actions/attest-for-npmsjs-com-0.1.1...actions/attest-for-npmsjs-com-0.1.2) (2026-03-17)
+
+
+### Bug Fixes
+
+* **attest-npmjs-com:** validate repository.url before generating attestation ([#80](https://github.com/LedgerHQ/actions-security/issues/80)) ([9fc9d84](https://github.com/LedgerHQ/actions-security/commit/9fc9d84f6372413a3189d4ded0505bc7af7b0084))
+
 ## [0.1.1](https://github.com/LedgerHQ/actions-security/compare/actions/attest-for-npmsjs-com-0.1.0...actions/attest-for-npmsjs-com-0.1.1) (2026-03-11)
 
 
