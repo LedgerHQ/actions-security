@@ -27,6 +27,8 @@ runs:
       - name: Check if running on a GitHub-hosted runner
         if: ${{ runner.environment != 'github-hosted' }}
         shell: bash
+        env:
+          RUNNER_ENVIRONMENT: ${{ runner.environment }}
         run: |
           echo "::error::This action must run on a GitHub-hosted runner. npmjs.com provenance verification rejects attestations generated on self-hosted runners (Runner Environment: \"$RUNNER_ENVIRONMENT\")."
           exit 1
