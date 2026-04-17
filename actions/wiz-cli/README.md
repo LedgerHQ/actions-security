@@ -26,7 +26,7 @@ Designed for seamless integration within Ledger's CI/CD pipeline, the `wiz-cli` 
 
 ## Prerequisites
 
-The Wiz credentials are stored as org-level variable and secret (`WIZ_CLIENT_ID_20260417` / `WIZ_CLIENT_SECRET_20260417`). To use this action in a new repository, the repository must be added to the scope of these org-level credentials in **GitHub Settings > Organization > Secrets and variables > Actions**.
+The Wiz credentials are stored as org-level variable and secret. To use this action in a new repository, the repository must be added to the scope of these org-level credentials in **GitHub Settings > Organization > Secrets and variables > Actions**.
 
 ## Usage
 
@@ -38,8 +38,8 @@ The Wiz credentials are stored as org-level variable and secret (`WIZ_CLIENT_ID_
   with:
     dir_path: "terraform/"
     policy_dir: "iac-security-policy"
-    wiz_client_id: ${{ vars.WIZ_CLIENT_ID_20260417 }}
-    wiz_client_secret: ${{ secrets.WIZ_CLIENT_SECRET_20260417 }}
+    wiz_client_id: ${{ vars.WIZ_CLIENT_ID }}
+    wiz_client_secret: ${{ secrets.WIZ_CLIENT_SECRET }}
 ```
 
 ### Docker Image Scanning
@@ -50,8 +50,8 @@ The Wiz credentials are stored as org-level variable and secret (`WIZ_CLIENT_ID_
   with:
     docker_tags: "my-image:latest,my-image:v1.0.0"
     policy_docker: "container-security-policy"
-    wiz_client_id: ${{ vars.WIZ_CLIENT_ID_20260417 }}
-    wiz_client_secret: ${{ secrets.WIZ_CLIENT_SECRET_20260417 }}
+    wiz_client_id: ${{ vars.WIZ_CLIENT_ID }}
+    wiz_client_secret: ${{ secrets.WIZ_CLIENT_SECRET }}
 ```
 
 ### Combined Scanning
@@ -64,8 +64,8 @@ The Wiz credentials are stored as org-level variable and secret (`WIZ_CLIENT_ID_
     policy_dir: "iac-security-policy"
     docker_tags: "my-image:latest"
     policy_docker: "container-security-policy"
-    wiz_client_id: ${{ vars.WIZ_CLIENT_ID_20260417 }}
-    wiz_client_secret: ${{ secrets.WIZ_CLIENT_SECRET_20260417 }}
+    wiz_client_id: ${{ vars.WIZ_CLIENT_ID }}
+    wiz_client_secret: ${{ secrets.WIZ_CLIENT_SECRET }}
 ```
 
 **Note**: At least one scan type (`dir_path` or `docker_tags`) must be specified for the action to run successfully.
