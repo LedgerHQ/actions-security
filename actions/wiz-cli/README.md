@@ -69,3 +69,5 @@ The Wiz credentials are stored as org-level variable and secret (`WIZ_CLIENT_ID_
 ```
 
 **Note**: At least one scan type (`dir_path` or `docker_tags`) must be specified for the action to run successfully.
+
+**Note**: This action only supports Linux x86_64 runners (e.g. `ubuntu-latest`).
