@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.0...actions/wiz-cli-1.0.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **wiz-cli:** correct CLI v1 command flags ([#90](https://github.com/LedgerHQ/actions-security/issues/90)) ([5652c34](https://github.com/LedgerHQ/actions-security/commit/5652c3441441c82ab2b06ae53f483d57f04e556a))
+
 ## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-0.1.0...actions/wiz-cli-1.0.0) (2026-04-17)
 
 
