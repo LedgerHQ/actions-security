@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.1...actions/wiz-cli-1.0.2) (2026-04-20)
+
+
+### Bug Fixes
+
+* **wiz-cli:** bump Wiz CLI to 1.43.0 ([#94](https://github.com/LedgerHQ/actions-security/issues/94)) ([f69524a](https://github.com/LedgerHQ/actions-security/commit/f69524abe9fd98d7d317757bc991fdc7da6b6784))
+
 ## [1.0.1](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.0...actions/wiz-cli-1.0.1) (2026-04-17)
 
 
