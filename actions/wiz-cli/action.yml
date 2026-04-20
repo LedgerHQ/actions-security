@@ -31,8 +31,8 @@ runs:
     - name: Download and verify Wiz CLI v1
       shell: bash
       env:
-        WIZ_CLI_VERSION: "1.42.0-d3be05e219b3745829a3887e31a1c8f794102b4d"
-        WIZ_CLI_SHA256: "c1b9f4f7227028dfc9420ed051b24592b17050505dd8800a515d260a1a189aa1"
+        WIZ_CLI_VERSION: "1.43.0-e2db0cecc2dbb3331f31355c676650211d691973"
+        WIZ_CLI_SHA256: "ee74a7f8d015926342c1632c7da1524777c48ee5606fd43ef3d616052754781f"
       run: |
         command -v curl >/dev/null 2>&1 || { echo "Error: curl is required but not installed."; exit 1; }
         command -v sha256sum >/dev/null 2>&1 || { echo "Error: sha256sum is required but not installed."; exit 1; }
