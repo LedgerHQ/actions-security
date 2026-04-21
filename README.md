@@ -33,7 +33,7 @@ A collection of reusable GitHub Actions for automating **artifact signing**, **a
 | **[sign-container](actions/sign-container)** | `actions/sign-container-1` | Sign container images with multiple tags using OIDC keyless signing |
 | **[jfrog-login](actions/jfrog-login)** | `actions/jfrog-login-1` | Secure OIDC-based login to Ledger's JFrog platform (Artifactory & Xray) |
 | **[jfrog-npm](actions/jfrog-npm)** | `actions/jfrog-npm-1` | Configure `.npmrc` for npm/pnpm/yarn to authenticate with JFrog |
-| **[check-npm-deployment](actions/check-npm-deployment)** | `actions/check-npm-deployment-1` | Check npm package deployment status via the OSS Supply Chain API (OIDC auth) |
+| **[check-npm-deployment](actions/check-npm-deployment)** | `actions/check-npm-deployment-1` | Verify npm packages were published to npmjs.com through the supply chain pipeline |
 | **[wiz-cli](actions/wiz-cli)** | `actions/wiz-cli-1` | Integrate with Wiz Cloud Security for IaC and container image scanning |
 
 ---
