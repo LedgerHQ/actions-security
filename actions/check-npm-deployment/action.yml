@@ -88,8 +88,13 @@ runs:
         fi
 
         POLL_INTERVAL="${INPUT_POLL_INTERVAL}"
+        if ! [[ "$POLL_INTERVAL" =~ ^[1-9][0-9]*$ ]]; then
+          echo "::error::Invalid poll-interval: '${INPUT_POLL_INTERVAL}'. Must be a positive integer."
+          exit 1
+        fi
 
         ENCODED_NAME=$(echo -n "$PACKAGE_NAME" | jq -sRr @uri)
+        ENCODED_VERSION=$(echo -n "$PACKAGE_VERSION" | jq -sRr @uri)
 
         echo "Polling for deployment status of ${PACKAGE_NAME}@${PACKAGE_VERSION}..."
         echo "  Timeout: ${TIMEOUT}s | Poll interval: ${POLL_INTERVAL}s"
@@ -104,7 +109,7 @@ runs:
 
           HTTP_CODE=$(curl -s -o "$RESP_FILE" -w "%{http_code}" \
             -H "Authorization: Bearer $OIDC_TOKEN" \
-            "${API_URL}/api/deployments/status?type=npm&name=${ENCODED_NAME}&version=${PACKAGE_VERSION}")
+            "${API_URL}/api/deployments/status?type=npm&name=${ENCODED_NAME}&version=${ENCODED_VERSION}")
 
           if [ "$HTTP_CODE" = "401" ] || [ "$HTTP_CODE" = "403" ]; then
             echo "::error::Authentication failed (HTTP ${HTTP_CODE}). Ensure the workflow has 'permissions: id-token: write' and the repository belongs to the LedgerHQ organization."
@@ -114,7 +119,7 @@ runs:
           fi
 
           if [ "$HTTP_CODE" = "200" ]; then
-            STATUS=$(jq -r '.results[0].status // empty' "$RESP_FILE")
+            STATUS=$(jq -r '(.results[0].status // "unknown") | if . == "" then "unknown" else . end' "$RESP_FILE")
 
             case "$STATUS" in
               success)
@@ -125,9 +130,10 @@ runs:
                 ;;
               failed)
                 ERROR_MSG=$(jq -r '.results[0].message // "unknown error"' "$RESP_FILE")
+                SAFE_MSG=$(echo "$ERROR_MSG" | tr '\n' ' ' | cut -c1-200)
                 echo "status=failed" >> "$GITHUB_OUTPUT"
-                echo "error-message=${ERROR_MSG}" >> "$GITHUB_OUTPUT"
-                echo "::error::Deployment failed for ${PACKAGE_NAME}@${PACKAGE_VERSION}: ${ERROR_MSG}"
+                echo "error-message=${SAFE_MSG}" >> "$GITHUB_OUTPUT"
+                echo "::error::Deployment failed for ${PACKAGE_NAME}@${PACKAGE_VERSION}: ${SAFE_MSG}"
                 exit 1
                 ;;
               queued|in_progress)
@@ -140,6 +146,8 @@ runs:
                 echo "::warning::Unexpected status: ${STATUS}"
                 ;;
             esac
+          else
+            echo "API returned HTTP ${HTTP_CODE}, retrying in ${POLL_INTERVAL}s..."
           fi
 
           sleep "$POLL_INTERVAL"

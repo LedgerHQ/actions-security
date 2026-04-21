@@ -43,6 +43,10 @@ jobs:
       - name: Build
         run: npm pack
 
+      - name: Get tarball path
+        id: tarball
+        run: echo "path=$(ls -1 *.tgz | head -n 1)" >> "$GITHUB_OUTPUT"
+
       - name: Login to JFrog
         id: jfrog-login
         uses: LedgerHQ/actions-security/actions/jfrog-login@actions/jfrog-login-1
@@ -51,15 +55,14 @@ jobs:
         run: npm publish --registry=https://jfrog.ledgerlabs.net/artifactory/api/npm/your-repo/
 
       - name: Attest
-        id: attest
         uses: LedgerHQ/actions-security/actions/attest-for-npmsjs-com@actions/attest-for-npmsjs-com-1
         with:
-          subject-path: "*.tgz"
+          subject-path: ${{ steps.tarball.outputs.path }}
 
       - name: Wait for npm deployment
         uses: LedgerHQ/actions-security/actions/check-npm-deployment@actions/check-npm-deployment-1
         with:
-          tarball-path: ${{ steps.attest.outputs.tarball-path }}
+          tarball-path: ${{ steps.tarball.outputs.path }}
 ```
 
 ### With custom timeout
@@ -70,7 +73,7 @@ For large packages or high-traffic periods:
       - name: Wait for npm deployment
         uses: LedgerHQ/actions-security/actions/check-npm-deployment@actions/check-npm-deployment-1
         with:
-          tarball-path: "*.tgz"
+          tarball-path: ${{ steps.tarball.outputs.path }}
           timeout: "600"
           poll-interval: "20"
 ```
@@ -82,7 +85,7 @@ For large packages or high-traffic periods:
         id: deploy
         uses: LedgerHQ/actions-security/actions/check-npm-deployment@actions/check-npm-deployment-1
         with:
-          tarball-path: "*.tgz"
+          tarball-path: ${{ steps.tarball.outputs.path }}
 
       - name: Next step
         if: steps.deploy.outputs.status == 'success'
@@ -96,9 +99,17 @@ strategy:
   matrix:
     package: [packages/pkg-a, packages/pkg-b]
 steps:
+  - name: Build
+    run: npm pack
+    working-directory: ${{ matrix.package }}
+
+  - name: Get tarball path
+    id: tarball
+    run: echo "path=$(ls -1 ${{ matrix.package }}/*.tgz | head -n 1)" >> "$GITHUB_OUTPUT"
+
   - uses: LedgerHQ/actions-security/actions/check-npm-deployment@actions/check-npm-deployment-1
     with:
-      tarball-path: ${{ matrix.package }}/*.tgz
+      tarball-path: ${{ steps.tarball.outputs.path }}
 ```
 
 ## Status values
