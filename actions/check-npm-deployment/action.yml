@@ -129,7 +129,7 @@ runs:
                 exit 0
                 ;;
               failed)
-                ERROR_MSG=$(jq -r '.results[0].message // "unknown error"' "$RESP_FILE")
+                ERROR_MSG=$(jq -r '(.results[0].message // .results[0].error) // "unknown error"' "$RESP_FILE")
                 SAFE_MSG=$(echo "$ERROR_MSG" | tr '\n' ' ' | cut -c1-200)
                 echo "status=failed" >> "$GITHUB_OUTPUT"
                 echo "error-message=${SAFE_MSG}" >> "$GITHUB_OUTPUT"
