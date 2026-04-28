@@ -34,6 +34,7 @@ A collection of reusable GitHub Actions for automating **artifact signing**, **a
 | **[jfrog-login](actions/jfrog-login)** | `actions/jfrog-login-1` | Secure OIDC-based login to Ledger's JFrog platform (Artifactory & Xray) |
 | **[jfrog-npm](actions/jfrog-npm)** | `actions/jfrog-npm-1` | Configure `.npmrc` for npm/pnpm/yarn to authenticate with JFrog |
 | **[wiz-cli](actions/wiz-cli)** | `actions/wiz-cli-1` | Integrate with Wiz Cloud Security for IaC and container image scanning |
+| **[workflow-scan](actions/workflow-scan)** | `actions/workflow-scan-1` | Scan GitHub Actions workflows with Trajan and octoscan |
 
 ---
 
