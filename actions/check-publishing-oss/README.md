@@ -1,8 +1,8 @@
-# Check Package Deployment Status
+# Check OSS publishing status
 
 Verify that a package was successfully published to a public registry (npmjs.com, PyPI, crates.io) through the Ledger supply chain pipeline.
 
-After publishing a package to JFrog, the supply chain API automatically picks it up and publishes it to the target registry. This action polls the API until the deployment is confirmed or fails.
+After publishing a package to JFrog, the supply chain API automatically picks it up and publishes it to the target registry. This action polls the API until publishing is confirmed or fails.
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ After publishing a package to JFrog, the supply chain API automatically picks it
 ### npm (from tarball)
 
 ```yaml
-- uses: LedgerHQ/actions-security/actions/check-deployment@actions/check-deployment-1
+- uses: LedgerHQ/actions-security/actions/check-publishing-oss@actions/check-publishing-oss-1
   with:
     package-type: npm
     tarball-path: ${{ steps.tarball.outputs.path }}
@@ -43,7 +43,7 @@ After publishing a package to JFrog, the supply chain API automatically picks it
 ### npm (explicit name/version)
 
 ```yaml
-- uses: LedgerHQ/actions-security/actions/check-deployment@actions/check-deployment-1
+- uses: LedgerHQ/actions-security/actions/check-publishing-oss@actions/check-publishing-oss-1
   with:
     package-type: npm
     package-name: "@ledger/my-package"
@@ -53,7 +53,7 @@ After publishing a package to JFrog, the supply chain API automatically picks it
 ### PyPI
 
 ```yaml
-- uses: LedgerHQ/actions-security/actions/check-deployment@actions/check-deployment-1
+- uses: LedgerHQ/actions-security/actions/check-publishing-oss@actions/check-publishing-oss-1
   with:
     package-type: pypi
     package-name: my-python-package
@@ -63,7 +63,7 @@ After publishing a package to JFrog, the supply chain API automatically picks it
 ### Crates.io (Rust)
 
 ```yaml
-- uses: LedgerHQ/actions-security/actions/check-deployment@actions/check-deployment-1
+- uses: LedgerHQ/actions-security/actions/check-publishing-oss@actions/check-publishing-oss-1
   with:
     package-type: crate
     package-name: my-rust-crate
@@ -73,7 +73,7 @@ After publishing a package to JFrog, the supply chain API automatically picks it
 ### With custom timeout
 
 ```yaml
-- uses: LedgerHQ/actions-security/actions/check-deployment@actions/check-deployment-1
+- uses: LedgerHQ/actions-security/actions/check-publishing-oss@actions/check-publishing-oss-1
   with:
     package-type: npm
     tarball-path: ${{ steps.tarball.outputs.path }}
@@ -84,9 +84,9 @@ After publishing a package to JFrog, the supply chain API automatically picks it
 ### Using the output
 
 ```yaml
-- name: Check deployment
+- name: Check OSS publishing
   id: deploy
-  uses: LedgerHQ/actions-security/actions/check-deployment@actions/check-deployment-1
+  uses: LedgerHQ/actions-security/actions/check-publishing-oss@actions/check-publishing-oss-1
   with:
     package-type: pypi
     package-name: my-package

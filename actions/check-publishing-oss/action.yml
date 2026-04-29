@@ -1,5 +1,5 @@
-name: "[Ledger Security] Check package deployment status"
-description: "Check if a package was successfully deployed to a public registry (npm, PyPI, crates.io) via the OSS Supply Chain API. Uses GitHub OIDC for authentication."
+name: "[Ledger Security] Check OSS publishing status"
+description: "Check if a package was successfully published to a public registry (npm, PyPI, crates.io) via the OSS Supply Chain API. Uses GitHub OIDC for authentication."
 
 inputs:
   package-type:
@@ -28,11 +28,11 @@ inputs:
 
 outputs:
   status:
-    description: "Deployment status: success, failed, or timed_out"
-    value: ${{ steps.check-deployment.outputs.status }}
+    description: "Publishing status: success, failed, or timed_out"
+    value: ${{ steps.check-publishing-oss.outputs.status }}
   error-message:
-    description: "Error message if deployment failed or timed out"
-    value: ${{ steps.check-deployment.outputs.error-message }}
+    description: "Error message if publishing failed or timed out"
+    value: ${{ steps.check-publishing-oss.outputs.error-message }}
 
 runs:
   using: "composite"
@@ -91,8 +91,8 @@ runs:
         echo "PACKAGE_NAME=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
         echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
 
-    - name: Check deployment status
-      id: check-deployment
+    - name: Check OSS publishing status
+      id: check-publishing-oss
       shell: bash
       env:
         PACKAGE_TYPE: ${{ steps.package-details.outputs.PACKAGE_TYPE }}
