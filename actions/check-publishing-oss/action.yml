@@ -108,7 +108,11 @@ runs:
         trap 'rm -f "$RESP_FILE"' EXIT
 
         TIMEOUT="${INPUT_TIMEOUT}"
-        if [ "$TIMEOUT" -gt 600 ] 2>/dev/null; then
+        if ! [[ "$TIMEOUT" =~ ^[1-9][0-9]*$ ]]; then
+          echo "::error::Invalid timeout: '${INPUT_TIMEOUT}'. Must be a positive integer."
+          exit 1
+        fi
+        if [ "$TIMEOUT" -gt 600 ]; then
           echo "::warning::Timeout capped at 600s (10 minutes). Requested: ${INPUT_TIMEOUT}s"
           TIMEOUT=600
         fi
@@ -116,6 +120,12 @@ runs:
         POLL_INTERVAL="${INPUT_POLL_INTERVAL}"
         if ! [[ "$POLL_INTERVAL" =~ ^[1-9][0-9]*$ ]]; then
           echo "::error::Invalid poll-interval: '${INPUT_POLL_INTERVAL}'. Must be a positive integer."
+          exit 1
+        fi
+
+        EOF_MARKER=$(openssl rand -hex 16 2>/dev/null || python3 -c 'import uuid; print(uuid.uuid4().hex)' 2>/dev/null || echo "EOF_$(date +%s%N)_$$")
+        if [ -z "$EOF_MARKER" ]; then
+          echo "::error::Failed to generate a safe delimiter for GITHUB_OUTPUT."
           exit 1
         fi
 
@@ -145,7 +155,7 @@ runs:
           fi
 
           if [ "$HTTP_CODE" = "200" ]; then
-            STATUS=$(jq -r '(.results[0].status // "unknown") | if . == "" then "unknown" else . end' "$RESP_FILE")
+            STATUS=$(jq -r '((.results // []) | (.[0] // {}) | .status) // "unknown" | if . == "" then "unknown" else . end' "$RESP_FILE")
 
             case "$STATUS" in
               success)
@@ -155,10 +165,14 @@ runs:
                 exit 0
                 ;;
               failed)
-                ERROR_MSG=$(jq -r '(.results[0].message // .results[0].error) // "unknown error"' "$RESP_FILE")
-                SAFE_MSG=$(echo "$ERROR_MSG" | tr '\n' ' ' | cut -c1-200)
+                ERROR_MSG=$(jq -r '((.results // []) | (.[0] // {}) | (.message // .error)) // "unknown error"' "$RESP_FILE")
+                SAFE_MSG=$(echo "$ERROR_MSG" | tr -d '\r' | tr '\n' ' ' | cut -c1-200)
                 echo "status=failed" >> "$GITHUB_OUTPUT"
-                echo "error-message=${SAFE_MSG}" >> "$GITHUB_OUTPUT"
+                {
+                  echo "error-message<<${EOF_MARKER}"
+                  printf '%s\n' "$SAFE_MSG"
+                  echo "${EOF_MARKER}"
+                } >> "$GITHUB_OUTPUT"
                 echo "::error::Deployment failed for ${PACKAGE_NAME}@${PACKAGE_VERSION}: ${SAFE_MSG}"
                 exit 1
                 ;;
@@ -180,7 +194,12 @@ runs:
           ELAPSED=$((ELAPSED + POLL_INTERVAL))
         done
 
+        TIMEOUT_MSG="Deployment status could not be confirmed within ${TIMEOUT}s for ${PACKAGE_NAME}@${PACKAGE_VERSION}."
         echo "status=timed_out" >> "$GITHUB_OUTPUT"
-        echo "error-message=Deployment status could not be confirmed within ${TIMEOUT}s for ${PACKAGE_NAME}@${PACKAGE_VERSION}." >> "$GITHUB_OUTPUT"
+        {
+          echo "error-message<<${EOF_MARKER}"
+          printf '%s\n' "$TIMEOUT_MSG"
+          echo "${EOF_MARKER}"
+        } >> "$GITHUB_OUTPUT"
         echo "::error::Timed out after ${TIMEOUT}s waiting for deployment status of ${PACKAGE_NAME}@${PACKAGE_VERSION}."
         exit 1
