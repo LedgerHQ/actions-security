@@ -9,83 +9,54 @@ description: |
   Both binaries are pinned by version and verified by SHA-256 before installation. Designed for seamless integration within Ledger's CI/CD pipeline, ensuring that GitHub Actions workflows follow security best practices and are free from common misconfigurations.
 
 inputs:
-  trajan-enabled:
-    description: 'Enable the Trajan GitHub API scan'
-    required: false
-    default: "true"
-  trajan-version:
-    description: 'Trajan release version'
-    required: false
-    default: "1.0.1"
-  trajan-sha256:
-    description: 'Expected SHA-256 digest of the Trajan binary'
-    required: false
-    default: "133486f9ddc12c7b20ca19c3100a4dbdfb0fba5066e7dc9322db6f67baa16609"
-  octoscan-enabled:
-    description: 'Enable the octoscan static analysis scan'
-    required: false
-    default: "true"
-  octoscan-version:
-    description: 'octoscan release version'
-    required: false
-    default: "0.1.7"
-  octoscan-sha256:
-    description: 'Expected SHA-256 digest of the octoscan binary'
-    required: false
-    default: "6435e9cc0e6346741367cbb1803e5b545d8e7031d188c733a0b30f768ab6ebe2"
   token:
     description: 'GitHub token for the Trajan API scan (defaults to the workflow GITHUB_TOKEN)'
     required: false
-    default: ${{ github.token }}
+    default: ''
 
 runs:
   using: "composite"
   steps:
     - name: Install Trajan
-      if: ${{ inputs.trajan-enabled == 'true' }}
       shell: bash
-      env:
-        TRAJAN_VERSION: ${{ inputs.trajan-version }}
-        TRAJAN_SHA256: ${{ inputs.trajan-sha256 }}
       run: |
         set -euo pipefail
+        TRAJAN_VERSION="1.0.1"
+        TRAJAN_SHA256="133486f9ddc12c7b20ca19c3100a4dbdfb0fba5066e7dc9322db6f67baa16609"
         WORK="$(mktemp -d)"
         curl -sSL \
           "https://github.com/praetorian-inc/trajan/releases/download/v${TRAJAN_VERSION}/trajan_${TRAJAN_VERSION}_linux_amd64.tar.gz" \
           -o "${WORK}/trajan.tgz"
         echo "${TRAJAN_SHA256}  ${WORK}/trajan.tgz" | sha256sum --check --strict
         tar -xzf "${WORK}/trajan.tgz" -C "${WORK}"
-        sudo install -m 0755 "${WORK}/trajan" /usr/local/bin/trajan
+        install -m 0755 "${WORK}/trajan" "${RUNNER_TEMP}/trajan"
+        echo "${RUNNER_TEMP}" >> "${GITHUB_PATH}"
         rm -rf "${WORK}"
 
     - name: Scan repository via GitHub API (Trajan)
-      if: ${{ inputs.trajan-enabled == 'true' }}
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.token }}
+        GH_TOKEN: ${{ inputs.token || github.token }}
         REPO: ${{ github.repository }}
       run: |
         set -euo pipefail
         trajan github scan --repo "${REPO}" --token "${GH_TOKEN}" --detailed
 
     - name: Install octoscan
-      if: ${{ inputs.octoscan-enabled == 'true' }}
       shell: bash
-      env:
-        OCTOSCAN_VERSION: ${{ inputs.octoscan-version }}
-        OCTOSCAN_SHA256: ${{ inputs.octoscan-sha256 }}
       run: |
         set -euo pipefail
+        OCTOSCAN_VERSION="0.1.7"
+        OCTOSCAN_SHA256="6435e9cc0e6346741367cbb1803e5b545d8e7031d188c733a0b30f768ab6ebe2"
         WORK="$(mktemp -d)"
         curl -sSL \
           "https://github.com/synacktiv/octoscan/releases/download/v${OCTOSCAN_VERSION}/octoscan" \
           -o "${WORK}/octoscan"
         echo "${OCTOSCAN_SHA256}  ${WORK}/octoscan" | sha256sum --check --strict
-        sudo install -m 0755 "${WORK}/octoscan" /usr/local/bin/octoscan
+        install -m 0755 "${WORK}/octoscan" "${RUNNER_TEMP}/octoscan"
         rm -rf "${WORK}"
 
     - name: Scan workflows (octoscan)
-      if: ${{ inputs.octoscan-enabled == 'true' }}
       shell: bash
       run: |
         set -euo pipefail
