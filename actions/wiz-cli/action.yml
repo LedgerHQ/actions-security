@@ -12,6 +12,9 @@ inputs:
   policy_dir:
     description: 'Policy to use for the directory scan'
     default: ""
+  disabled_scanners:
+    description: 'Comma-separated list of scanners to disable for the directory scan (supported: Vulnerability, Secret, SensitiveData, Misconfiguration, SoftwareSupplyChain, AIModels, SAST, Malware)'
+    default: ""
   docker_tags:
     description: 'List of tags to scan (based on the output of the docker/metadata-action)'
     default: ""
@@ -59,12 +62,16 @@ runs:
         WIZ_CLIENT_SECRET: ${{ inputs.wiz_client_secret }}
         DIR_PATH: ${{ inputs.dir_path }}
         POLICY_DIR: ${{ inputs.policy_dir }}
+        DISABLED_SCANNERS: ${{ inputs.disabled_scanners }}
       run: |
+        ARGS=(scan dir "${DIR_PATH}")
         if [[ -n "${POLICY_DIR}" ]]; then
-          ./wizcli dir scan --path "${DIR_PATH}" -p "${POLICY_DIR}"
-        else
-          ./wizcli dir scan --path "${DIR_PATH}"
+          ARGS+=(-p "${POLICY_DIR}")
         fi
+        if [[ -n "${DISABLED_SCANNERS}" ]]; then
+          ARGS+=(--disabled-scanners "${DISABLED_SCANNERS}")
+        fi
+        ./wizcli "${ARGS[@]}"
 
     - name: Run Wiz CLI Docker image scan
       if: ${{ inputs.docker_tags != '' }}
@@ -76,11 +83,11 @@ runs:
         POLICY_DOCKER: ${{ inputs.policy_docker }}
         SCAN_NAME: ${{ github.repository }}-${{ github.ref }}
       run: |
+        ARGS=(scan container-image "${DOCKER_TAGS}" --name "${SCAN_NAME}")
         if [[ -n "${POLICY_DOCKER}" ]]; then
-          ./wizcli docker scan -i "${DOCKER_TAGS}" --name "${SCAN_NAME}" -p "${POLICY_DOCKER}"
-        else
-          ./wizcli docker scan -i "${DOCKER_TAGS}" --name "${SCAN_NAME}"
+          ARGS+=(-p "${POLICY_DOCKER}")
         fi
+        ./wizcli "${ARGS[@]}"
 
     - name: Tag Docker image for Wiz graph enrichment
       if: ${{ inputs.docker_tags != '' }}

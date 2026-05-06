@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.2...actions/wiz-cli-1.1.0) (2026-05-06)
+
+
+### Features
+
+* **wiz-cli:** add disabled_scanners input for dir scan ([#96](https://github.com/LedgerHQ/actions-security/issues/96)) ([f1a9801](https://github.com/LedgerHQ/actions-security/commit/f1a980165043e3497cc8ca7bfe1988b200bf89ff))
+
 ## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.1...actions/wiz-cli-1.0.2) (2026-04-20)
 
 
@@ -20,12 +27,10 @@
 ### ⚠ BREAKING CHANGES
 
 * **wiz-cli:** input iac_path renamed to dir_path, policy_iac renamed to policy_dir
-* **wiz-cli:** input iac_path renamed to dir_path, policy_iac renamed to policy_dir
 
 ### Features
 
-* **wiz-cli:** upgrade to Wiz CLI v1 ([#87](https://github.com/LedgerHQ/actions-security/issues/87)) ([34e49a6](https://github.com/LedgerHQ/actions-security/commit/34e49a637086820c7e0b2936e02c57e10cd3323f))
-* **wiz-cli:** upgrade to Wiz CLI v1 ([#88](https://github.com/LedgerHQ/actions-security/issues/88)) ([04075dd](https://github.com/LedgerHQ/actions-security/commit/04075dd0b712a7094e378b92a8a6b92abcd241b7))
+* **wiz-cli:** upgrade to Wiz CLI v1 ([#84](https://github.com/LedgerHQ/actions-security/issues/84)) ([ce72159](https://github.com/LedgerHQ/actions-security/commit/ce72159238a3d3a3f4e21347817cdfa70478e726))
 
 ## 0.1.0 (2025-10-06)
 
