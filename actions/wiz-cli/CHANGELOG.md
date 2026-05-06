@@ -20,12 +20,10 @@
 ### ⚠ BREAKING CHANGES
 
 * **wiz-cli:** input iac_path renamed to dir_path, policy_iac renamed to policy_dir
-* **wiz-cli:** input iac_path renamed to dir_path, policy_iac renamed to policy_dir
 
 ### Features
 
-* **wiz-cli:** upgrade to Wiz CLI v1 ([#87](https://github.com/LedgerHQ/actions-security/issues/87)) ([34e49a6](https://github.com/LedgerHQ/actions-security/commit/34e49a637086820c7e0b2936e02c57e10cd3323f))
-* **wiz-cli:** upgrade to Wiz CLI v1 ([#88](https://github.com/LedgerHQ/actions-security/issues/88)) ([04075dd](https://github.com/LedgerHQ/actions-security/commit/04075dd0b712a7094e378b92a8a6b92abcd241b7))
+* **wiz-cli:** upgrade to Wiz CLI v1 ([#84](https://github.com/LedgerHQ/actions-security/issues/84)) ([ce72159](https://github.com/LedgerHQ/actions-security/commit/ce72159238a3d3a3f4e21347817cdfa70478e726))
 
 ## 0.1.0 (2025-10-06)
 
