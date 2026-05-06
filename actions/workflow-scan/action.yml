@@ -40,7 +40,7 @@ runs:
         REPO: ${{ github.repository }}
       run: |
         set -euo pipefail
-        trajan github scan --repo "${REPO}" --token "${GH_TOKEN}" --detailed
+        trajan github scan --repo "${REPO}" --detailed
 
     - name: Install octoscan
       shell: bash
