@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.2...actions/wiz-cli-1.1.0) (2026-05-06)
+
+
+### Features
+
+* **wiz-cli:** add disabled_scanners input for dir scan ([#96](https://github.com/LedgerHQ/actions-security/issues/96)) ([f1a9801](https://github.com/LedgerHQ/actions-security/commit/f1a980165043e3497cc8ca7bfe1988b200bf89ff))
+
 ## [1.0.2](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.1...actions/wiz-cli-1.0.2) (2026-04-20)
 
 
