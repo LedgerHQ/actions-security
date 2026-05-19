@@ -35,6 +35,7 @@ A collection of reusable GitHub Actions for automating **artifact signing**, **a
 | **[jfrog-npm](actions/jfrog-npm)** | `actions/jfrog-npm-1` | Configure `.npmrc` for npm/pnpm/yarn to authenticate with JFrog |
 | **[check-publishing-oss](actions/check-publishing-oss)** | `actions/check-publishing-oss-1` | Verify packages were published to public registries (npm, PyPI, crates.io) through the supply chain pipeline |
 | **[wiz-cli](actions/wiz-cli)** | `actions/wiz-cli-1` | Integrate with Wiz Cloud Security for IaC and container image scanning |
+| **[workflow-scan](actions/workflow-scan)** | `actions/workflow-scan-1` | Scan GitHub Actions workflows with Trajan and octoscan |
 
 ---
 
