@@ -48,7 +48,7 @@ runs:
       oidc-provider-name: github-oidc
       oidc-audience: jfrog-github
       enable-package-alias: true
-      package-alias-tools: npm
+      package-alias-tools: npm,pnpm
   - name: Expose outputs as environment variables
     id: expose-outputs
     run: |
