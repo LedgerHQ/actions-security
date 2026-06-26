@@ -47,6 +47,8 @@ runs:
     with:
       oidc-provider-name: github-oidc
       oidc-audience: jfrog-github
+      enable-package-alias: true
+      package-alias-tools: npm
   - name: Expose outputs as environment variables
     id: expose-outputs
     run: |
@@ -57,4 +59,5 @@ runs:
       echo "JFROG_USER=${{ steps.setup-jfrog-cli.outputs.oidc-user }}" >> $GITHUB_ENV
       echo "JFROG_TOKEN=${{ steps.setup-jfrog-cli.outputs.oidc-token }}" >> $GITHUB_ENV
       echo "JFROG_URL=${{ inputs.jfrog-url }}" >> $GITHUB_ENV
+      echo "JFROG_CLI_GHOST_FROG=true" >> $GITHUB_ENV
     shell: bash
