@@ -43,6 +43,7 @@ runs:
     id: setup-jfrog-cli
     env:
       JF_URL: ${{ inputs.jfrog-url }}
+      JFROG_CLI_GHOST_FROG: "true"
     with:
       oidc-provider-name: github-oidc
       oidc-audience: jfrog-github
