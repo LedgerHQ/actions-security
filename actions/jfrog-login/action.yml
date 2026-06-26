@@ -90,4 +90,6 @@ runs:
       echo "JFROG_TOKEN=${{ steps.setup-jfrog-cli.outputs.oidc-token }}" >> $GITHUB_ENV
       echo "JFROG_URL=${{ inputs.jfrog-url }}" >> $GITHUB_ENV
       echo "JFROG_CLI_GHOST_FROG=true" >> $GITHUB_ENV
+      echo "JFROG_CLI_BUILD_NAME=$GITHUB_REPOSITORY" >> $GITHUB_ENV
+      echo "JFROG_CLI_BUILD_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
     shell: bash
