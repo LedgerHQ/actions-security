@@ -58,19 +58,23 @@ runs:
     run: |
       TOOLS="${{ inputs.package-alias-tools }}"
       SERVER_ID="setup-jfrog-cli-server"
+      NPM_CONFIGURED=false
       for tool in $(echo "$TOOLS" | tr ',' ' '); do
         case "$tool" in
           npm|pnpm)
-            jf npm-config --repo-resolve=ossproxy-npm-proxy-npmjs --server-id-resolve="$SERVER_ID"
+            if [ "$NPM_CONFIGURED" = "false" ]; then
+              jf npm-config --repo-resolve=ossproxy-npm-proxy-npmjs --server-id-resolve="$SERVER_ID"
+              NPM_CONFIGURED=true
+            fi
             ;;
           pip|pipenv|poetry)
-            jf pip-config --repo-resolve=ossproxy-pypi-proxy-pypi --server-id-resolve="$SERVER_ID"
+            jf pip-config --repo-resolve=ossproxy-pypi-proxy-pypiorg --server-id-resolve="$SERVER_ID"
             ;;
           go)
-            jf go-config --repo-resolve=ossproxy-go-proxy-gocenter --server-id-resolve="$SERVER_ID"
+            jf go-config --repo-resolve=ossproxy-go-proxy-golang --server-id-resolve="$SERVER_ID"
             ;;
           mvn)
-            jf mvn-config --repo-resolve-releases=ossproxy-maven-proxy-central --repo-resolve-snapshots=ossproxy-maven-proxy-central --server-id-resolve="$SERVER_ID"
+            jf mvn-config --repo-resolve-releases=ossproxy-maven-proxy-mavencentral --repo-resolve-snapshots=ossproxy-maven-proxy-mavencentral --server-id-resolve="$SERVER_ID"
             ;;
         esac
       done
