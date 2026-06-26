@@ -45,6 +45,7 @@ runs:
       JF_URL: ${{ inputs.jfrog-url }}
       JFROG_CLI_GHOST_FROG: "true"
     with:
+      version: latest
       oidc-provider-name: github-oidc
       oidc-audience: jfrog-github
       enable-package-alias: true
