@@ -10,6 +10,10 @@ inputs:
     description: "Base URL of the JFrog platform to be used for API/CLI operations. Defaults to Ledger's JFrog URL if not specified."
     required: false
     default: "https://jfrog.ledgerlabs.net"
+  package-alias-tools:
+    description: "Comma-separated list of package managers to alias (e.g. npm,pnpm,pip,go,mvn). Resolve repos are auto-configured for each."
+    required: false
+    default: "npm,pnpm"
 
 outputs:
   oidc-token:
@@ -49,7 +53,28 @@ runs:
       oidc-provider-name: github-oidc
       oidc-audience: jfrog-github
       enable-package-alias: true
-      package-alias-tools: npm,pnpm
+      package-alias-tools: ${{ inputs.package-alias-tools }}
+  - name: Configure resolve repos for package aliases
+    run: |
+      TOOLS="${{ inputs.package-alias-tools }}"
+      SERVER_ID="setup-jfrog-cli-server"
+      for tool in $(echo "$TOOLS" | tr ',' ' '); do
+        case "$tool" in
+          npm|pnpm)
+            jf npm-config --repo-resolve=ossproxy-npm-proxy-npmjs --server-id-resolve="$SERVER_ID"
+            ;;
+          pip|pipenv|poetry)
+            jf pip-config --repo-resolve=ossproxy-pypi-proxy-pypi --server-id-resolve="$SERVER_ID"
+            ;;
+          go)
+            jf go-config --repo-resolve=ossproxy-go-proxy-gocenter --server-id-resolve="$SERVER_ID"
+            ;;
+          mvn)
+            jf mvn-config --repo-resolve-releases=ossproxy-maven-proxy-central --repo-resolve-snapshots=ossproxy-maven-proxy-central --server-id-resolve="$SERVER_ID"
+            ;;
+        esac
+      done
+    shell: bash
   - name: Expose outputs as environment variables
     id: expose-outputs
     run: |
