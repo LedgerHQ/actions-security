@@ -1,0 +1,205 @@
+name: "[Ledger Security] Check OSS publishing status"
+description: "Check if a package was successfully published to a public registry (npm, PyPI, crates.io) via the OSS Supply Chain API. Uses GitHub OIDC for authentication."
+
+inputs:
+  package-type:
+    description: "Package type: npm, pypi, or crate"
+    required: true
+  package-name:
+    description: "Package name (e.g. @scope/pkg, my-crate, my-python-pkg). Required unless tarball-path is provided for npm."
+    required: false
+    default: ""
+  package-version:
+    description: "Package version. Required unless tarball-path is provided for npm."
+    required: false
+    default: ""
+  tarball-path:
+    description: "Path to an npm tarball (.tgz). If provided, package-name and package-version are extracted automatically. Only for npm."
+    required: false
+    default: ""
+  timeout:
+    description: "Maximum seconds to wait for deployment result (max 600)"
+    required: false
+    default: "300"
+  poll-interval:
+    description: "Seconds between status checks"
+    required: false
+    default: "15"
+
+outputs:
+  status:
+    description: "Publishing status: success, failed, or timed_out"
+    value: ${{ steps.check-publishing-oss.outputs.status }}
+  error-message:
+    description: "Error message if publishing failed or timed out"
+    value: ${{ steps.check-publishing-oss.outputs.error-message }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve package metadata
+      id: package-details
+      shell: bash
+      env:
+        INPUT_PACKAGE_TYPE: ${{ inputs.package-type }}
+        INPUT_PACKAGE_NAME: ${{ inputs.package-name }}
+        INPUT_PACKAGE_VERSION: ${{ inputs.package-version }}
+        INPUT_TARBALL_PATH: ${{ inputs.tarball-path }}
+      run: |
+        set -euo pipefail
+
+        PACKAGE_TYPE="$INPUT_PACKAGE_TYPE"
+
+        if [[ ! "$PACKAGE_TYPE" =~ ^(npm|pypi|crate)$ ]]; then
+          echo "::error::Invalid package-type: '$PACKAGE_TYPE'. Must be npm, pypi, or crate."
+          exit 1
+        fi
+
+        if [ -n "$INPUT_TARBALL_PATH" ]; then
+          if [ "$PACKAGE_TYPE" != "npm" ]; then
+            echo "::error::tarball-path is only supported for npm packages."
+            exit 1
+          fi
+
+          if [ ! -e "$INPUT_TARBALL_PATH" ]; then
+            echo "::error::Tarball not found: $INPUT_TARBALL_PATH"
+            exit 1
+          fi
+
+          TARBALL_ABS=$(realpath "$INPUT_TARBALL_PATH")
+
+          if ! PACKAGE_JSON=$(tar xzf "$TARBALL_ABS" -O package/package.json 2>/dev/null); then
+            echo "::error::Failed to extract package/package.json from tarball: $TARBALL_ABS"
+            exit 1
+          fi
+
+          PACKAGE_NAME=$(echo "$PACKAGE_JSON" | jq -er '.name') || { echo "::error::Failed to parse package name from tarball"; exit 1; }
+          PACKAGE_VERSION=$(echo "$PACKAGE_JSON" | jq -er '.version') || { echo "::error::Failed to parse package version from tarball"; exit 1; }
+        else
+          PACKAGE_NAME="$INPUT_PACKAGE_NAME"
+          PACKAGE_VERSION="$INPUT_PACKAGE_VERSION"
+
+          if [ -z "$PACKAGE_NAME" ] || [ -z "$PACKAGE_VERSION" ]; then
+            echo "::error::package-name and package-version are required when tarball-path is not provided."
+            exit 1
+          fi
+        fi
+
+        echo "Package: ${PACKAGE_NAME}@${PACKAGE_VERSION} (${PACKAGE_TYPE})"
+
+        echo "PACKAGE_TYPE=${PACKAGE_TYPE}" >> "$GITHUB_OUTPUT"
+        echo "PACKAGE_NAME=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
+        echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
+
+    - name: Check OSS publishing status
+      id: check-publishing-oss
+      shell: bash
+      env:
+        PACKAGE_TYPE: ${{ steps.package-details.outputs.PACKAGE_TYPE }}
+        PACKAGE_NAME: ${{ steps.package-details.outputs.PACKAGE_NAME }}
+        PACKAGE_VERSION: ${{ steps.package-details.outputs.PACKAGE_VERSION }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_POLL_INTERVAL: ${{ inputs.poll-interval }}
+      run: |
+        set -euo pipefail
+
+        API_URL="https://api.security.ledger.com/oss-supply-chain"
+        RESP_FILE=$(mktemp)
+        trap 'rm -f "$RESP_FILE"' EXIT
+
+        TIMEOUT="${INPUT_TIMEOUT}"
+        if ! [[ "$TIMEOUT" =~ ^[1-9][0-9]*$ ]]; then
+          echo "::error::Invalid timeout: '${INPUT_TIMEOUT}'. Must be a positive integer."
+          exit 1
+        fi
+        if [ "$TIMEOUT" -gt 600 ]; then
+          echo "::warning::Timeout capped at 600s (10 minutes). Requested: ${INPUT_TIMEOUT}s"
+          TIMEOUT=600
+        fi
+
+        POLL_INTERVAL="${INPUT_POLL_INTERVAL}"
+        if ! [[ "$POLL_INTERVAL" =~ ^[1-9][0-9]*$ ]]; then
+          echo "::error::Invalid poll-interval: '${INPUT_POLL_INTERVAL}'. Must be a positive integer."
+          exit 1
+        fi
+
+        EOF_MARKER=$(openssl rand -hex 16 2>/dev/null || python3 -c 'import uuid; print(uuid.uuid4().hex)' 2>/dev/null || echo "EOF_$(date +%s%N)_$$")
+        if [ -z "$EOF_MARKER" ]; then
+          echo "::error::Failed to generate a safe delimiter for GITHUB_OUTPUT."
+          exit 1
+        fi
+
+        ENCODED_NAME=$(echo -n "$PACKAGE_NAME" | jq -sRr @uri)
+        ENCODED_VERSION=$(echo -n "$PACKAGE_VERSION" | jq -sRr @uri)
+
+        echo "Polling for deployment status of ${PACKAGE_NAME}@${PACKAGE_VERSION} (${PACKAGE_TYPE})..."
+        echo "  Timeout: ${TIMEOUT}s | Poll interval: ${POLL_INTERVAL}s"
+
+        ELAPSED=0
+        while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
+          OIDC_TOKEN=$(curl -s \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://api.security.ledger.com" \
+            | jq -r '.value')
+          echo "::add-mask::$OIDC_TOKEN"
+
+          HTTP_CODE=$(curl -s -o "$RESP_FILE" -w "%{http_code}" \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            "${API_URL}/api/deployments/status?type=${PACKAGE_TYPE}&name=${ENCODED_NAME}&version=${ENCODED_VERSION}")
+
+          if [ "$HTTP_CODE" = "401" ] || [ "$HTTP_CODE" = "403" ]; then
+            echo "::error::Authentication failed (HTTP ${HTTP_CODE}). Ensure the workflow has 'permissions: id-token: write' and the repository belongs to the LedgerHQ organization."
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            echo "error-message=Authentication failed (HTTP ${HTTP_CODE})" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            STATUS=$(jq -r '((.results // []) | (.[0] // {}) | .status) // "unknown" | if . == "" then "unknown" else . end' "$RESP_FILE")
+
+            case "$STATUS" in
+              success)
+                echo "status=success" >> "$GITHUB_OUTPUT"
+                echo "error-message=" >> "$GITHUB_OUTPUT"
+                echo "Deployment successful for ${PACKAGE_NAME}@${PACKAGE_VERSION}"
+                exit 0
+                ;;
+              failed)
+                ERROR_MSG=$(jq -r '((.results // []) | (.[0] // {}) | (.message // .error)) // "unknown error"' "$RESP_FILE")
+                SAFE_MSG=$(echo "$ERROR_MSG" | tr -d '\r' | tr '\n' ' ' | cut -c1-200)
+                echo "status=failed" >> "$GITHUB_OUTPUT"
+                {
+                  echo "error-message<<${EOF_MARKER}"
+                  printf '%s\n' "$SAFE_MSG"
+                  echo "${EOF_MARKER}"
+                } >> "$GITHUB_OUTPUT"
+                echo "::error::Deployment failed for ${PACKAGE_NAME}@${PACKAGE_VERSION}: ${SAFE_MSG}"
+                exit 1
+                ;;
+              queued|in_progress)
+                echo "Status: ${STATUS}, waiting ${POLL_INTERVAL}s..."
+                ;;
+              unknown)
+                echo "Package not yet seen by API, waiting ${POLL_INTERVAL}s..."
+                ;;
+              *)
+                echo "::warning::Unexpected status: ${STATUS}"
+                ;;
+            esac
+          else
+            echo "API returned HTTP ${HTTP_CODE}, retrying in ${POLL_INTERVAL}s..."
+          fi
+
+          sleep "$POLL_INTERVAL"
+          ELAPSED=$((ELAPSED + POLL_INTERVAL))
+        done
+
+        TIMEOUT_MSG="Deployment status could not be confirmed within ${TIMEOUT}s for ${PACKAGE_NAME}@${PACKAGE_VERSION}."
+        echo "status=timed_out" >> "$GITHUB_OUTPUT"
+        {
+          echo "error-message<<${EOF_MARKER}"
+          printf '%s\n' "$TIMEOUT_MSG"
+          echo "${EOF_MARKER}"
+        } >> "$GITHUB_OUTPUT"
+        echo "::error::Timed out after ${TIMEOUT}s waiting for deployment status of ${PACKAGE_NAME}@${PACKAGE_VERSION}."
+        exit 1

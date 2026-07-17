@@ -12,6 +12,9 @@ inputs:
   policy_dir:
     description: 'Policy to use for the directory scan'
     default: ""
+  disabled_scanners:
+    description: 'Comma-separated list of scanners to disable for the directory scan (supported: Vulnerability, Secret, SensitiveData, Misconfiguration, SoftwareSupplyChain, AIModels, SAST, Malware)'
+    default: ""
   docker_tags:
     description: 'List of tags to scan (based on the output of the docker/metadata-action)'
     default: ""
@@ -31,14 +34,16 @@ runs:
     - name: Download and verify Wiz CLI v1
       shell: bash
       env:
-        WIZ_CLI_VERSION: "1.43.0-e2db0cecc2dbb3331f31355c676650211d691973"
-        WIZ_CLI_SHA256: "ee74a7f8d015926342c1632c7da1524777c48ee5606fd43ef3d616052754781f"
+        WIZ_CLI_VERSION: "1.61.0"
+        WIZ_CLI_SHA256: "f9384f10eec9021325d71330ecabe08d5b1de6f50d379d34d394b8fbbb51de00"
       run: |
         command -v curl >/dev/null 2>&1 || { echo "Error: curl is required but not installed."; exit 1; }
         command -v sha256sum >/dev/null 2>&1 || { echo "Error: sha256sum is required but not installed."; exit 1; }
-        curl -fSL -o wizcli "https://downloads.wiz.io/v1/wizcli/${WIZ_CLI_VERSION}/wizcli-linux-amd64"
-        echo "${WIZ_CLI_SHA256}  wizcli" | sha256sum -c -
-        chmod +x wizcli
+        WIZCLI_PATH="${RUNNER_TEMP:?RUNNER_TEMP is not set}/wizcli"
+        echo "WIZCLI_PATH=${WIZCLI_PATH}" >> "${GITHUB_ENV}"
+        curl -fSL -o "${WIZCLI_PATH}" "https://downloads.wiz.io/v1/wizcli/${WIZ_CLI_VERSION}/wizcli-linux-amd64"
+        echo "${WIZ_CLI_SHA256}  ${WIZCLI_PATH}" | sha256sum -c -
+        chmod +x "${WIZCLI_PATH}"
 
     - name: Validate scan configuration
       shell: bash
@@ -59,12 +64,16 @@ runs:
         WIZ_CLIENT_SECRET: ${{ inputs.wiz_client_secret }}
         DIR_PATH: ${{ inputs.dir_path }}
         POLICY_DIR: ${{ inputs.policy_dir }}
+        DISABLED_SCANNERS: ${{ inputs.disabled_scanners }}
       run: |
+        ARGS=(scan dir "${DIR_PATH}")
         if [[ -n "${POLICY_DIR}" ]]; then
-          ./wizcli dir scan --path "${DIR_PATH}" -p "${POLICY_DIR}"
-        else
-          ./wizcli dir scan --path "${DIR_PATH}"
+          ARGS+=(-p "${POLICY_DIR}")
         fi
+        if [[ -n "${DISABLED_SCANNERS}" ]]; then
+          ARGS+=(--disabled-scanners "${DISABLED_SCANNERS}")
+        fi
+        "${WIZCLI_PATH}" "${ARGS[@]}"
 
     - name: Run Wiz CLI Docker image scan
       if: ${{ inputs.docker_tags != '' }}
@@ -76,11 +85,11 @@ runs:
         POLICY_DOCKER: ${{ inputs.policy_docker }}
         SCAN_NAME: ${{ github.repository }}-${{ github.ref }}
       run: |
+        ARGS=(scan container-image "${DOCKER_TAGS}" --name "${SCAN_NAME}")
         if [[ -n "${POLICY_DOCKER}" ]]; then
-          ./wizcli docker scan -i "${DOCKER_TAGS}" --name "${SCAN_NAME}" -p "${POLICY_DOCKER}"
-        else
-          ./wizcli docker scan -i "${DOCKER_TAGS}" --name "${SCAN_NAME}"
+          ARGS+=(-p "${POLICY_DOCKER}")
         fi
+        "${WIZCLI_PATH}" "${ARGS[@]}"
 
     - name: Tag Docker image for Wiz graph enrichment
       if: ${{ inputs.docker_tags != '' }}
@@ -90,4 +99,4 @@ runs:
         WIZ_CLIENT_SECRET: ${{ inputs.wiz_client_secret }}
         DOCKER_TAGS: ${{ inputs.docker_tags }}
       run: |
-        ./wizcli tag "${DOCKER_TAGS}"
+        "${WIZCLI_PATH}" tag "${DOCKER_TAGS}"
