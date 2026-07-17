@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.1.0...actions/wiz-cli-1.1.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **wiz-cli:** download wizcli outside the scanned directory ([#102](https://github.com/LedgerHQ/actions-security/issues/102)) ([43a5c62](https://github.com/LedgerHQ/actions-security/commit/43a5c62a137ad1fc312c4a50e82352e95ad082c2))
+
 ## [1.1.0](https://github.com/LedgerHQ/actions-security/compare/actions/wiz-cli-1.0.2...actions/wiz-cli-1.1.0) (2026-05-06)
 
 
