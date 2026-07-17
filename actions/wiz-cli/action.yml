@@ -39,9 +39,9 @@ runs:
       run: |
         command -v curl >/dev/null 2>&1 || { echo "Error: curl is required but not installed."; exit 1; }
         command -v sha256sum >/dev/null 2>&1 || { echo "Error: sha256sum is required but not installed."; exit 1; }
-        curl -fSL -o wizcli "https://downloads.wiz.io/v1/wizcli/${WIZ_CLI_VERSION}/wizcli-linux-amd64"
-        echo "${WIZ_CLI_SHA256}  wizcli" | sha256sum -c -
-        chmod +x wizcli
+        curl -fSL -o "${RUNNER_TEMP}/wizcli" "https://downloads.wiz.io/v1/wizcli/${WIZ_CLI_VERSION}/wizcli-linux-amd64"
+        echo "${WIZ_CLI_SHA256}  ${RUNNER_TEMP}/wizcli" | sha256sum -c -
+        chmod +x "${RUNNER_TEMP}/wizcli"
 
     - name: Validate scan configuration
       shell: bash
@@ -71,7 +71,7 @@ runs:
         if [[ -n "${DISABLED_SCANNERS}" ]]; then
           ARGS+=(--disabled-scanners "${DISABLED_SCANNERS}")
         fi
-        ./wizcli "${ARGS[@]}"
+        "${RUNNER_TEMP}/wizcli" "${ARGS[@]}"
 
     - name: Run Wiz CLI Docker image scan
       if: ${{ inputs.docker_tags != '' }}
@@ -87,7 +87,7 @@ runs:
         if [[ -n "${POLICY_DOCKER}" ]]; then
           ARGS+=(-p "${POLICY_DOCKER}")
         fi
-        ./wizcli "${ARGS[@]}"
+        "${RUNNER_TEMP}/wizcli" "${ARGS[@]}"
 
     - name: Tag Docker image for Wiz graph enrichment
       if: ${{ inputs.docker_tags != '' }}
@@ -97,4 +97,4 @@ runs:
         WIZ_CLIENT_SECRET: ${{ inputs.wiz_client_secret }}
         DOCKER_TAGS: ${{ inputs.docker_tags }}
       run: |
-        ./wizcli tag "${DOCKER_TAGS}"
+        "${RUNNER_TEMP}/wizcli" tag "${DOCKER_TAGS}"
