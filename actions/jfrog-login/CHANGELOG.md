@@ -3,15 +3,6 @@
 ## [2.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.4.0...actions/jfrog-login-2.0.0) (2026-04-20)
 
 
-### ⚠ BREAKING CHANGES
-
-* **wiz-cli:** input iac_path renamed to dir_path, policy_iac renamed to policy_dir
-
-### Features
-
-* **wiz-cli:** upgrade to Wiz CLI v1 ([#87](https://github.com/LedgerHQ/actions-security/issues/87)) ([34e49a6](https://github.com/LedgerHQ/actions-security/commit/34e49a637086820c7e0b2936e02c57e10cd3323f))
-
-
 ### Bug Fixes
 
 * **jfrog-login:** domain is empty due to using the wrong output ([#83](https://github.com/LedgerHQ/actions-security/issues/83)) ([7304043](https://github.com/LedgerHQ/actions-security/commit/7304043cc7b16394ab54ff9eb1bdba151d6d915f))
