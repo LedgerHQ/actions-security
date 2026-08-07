@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+### Features
+
+* **attest-npmjs-com:** attest every tarball in a directory instead of only the newest one, with one single-subject attestation per package
+* **attest-npmjs-com:** support large monorepos by building the in-toto statements directly and signing them in a single pass, removing the SLSA `generate-attestations` 50-attestation-per-layout limit
+* **attest-npmjs-com:** add `tarball-paths` and `package-count` outputs
+
 ## [0.1.2](https://github.com/LedgerHQ/actions-security/compare/actions/attest-for-npmsjs-com-0.1.1...actions/attest-for-npmsjs-com-0.1.2) (2026-03-17)
 
 
