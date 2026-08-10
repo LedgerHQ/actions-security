@@ -101,11 +101,11 @@ jobs:
         with:
           subject-path: dist-tarballs
 
-      # Publish each attested tarball (iterate over tarball-paths)
+      # Publish each attested tarball (the same ones you packed above)
       - run: |
-          while IFS= read -r tarball; do
-            [ -n "$tarball" ] && npm publish "$tarball"
-          done <<< "${{ steps.attest.outputs.tarball-paths }}"
+          for tarball in dist-tarballs/*.tgz; do
+            npm publish "$tarball"
+          done
 ```
 
 <!-- action-docs-inputs source="action.yml" -->
@@ -122,9 +122,7 @@ jobs:
 
 | name | description |
 | --- | --- |
-| `tarball-path` | Absolute path to the first (or only) tarball that was attested. For multiple tarballs, prefer `tarball-paths`. Use this path for publishing to ensure the checksum matches. |
-| `tarball-paths` | Newline-separated absolute paths of all tarballs that were attested. Iterate over this to publish exactly the tarballs that were attested. |
-| `package-count` | Number of tarballs that were attested. |
+| `tarball-path` | Absolute path to the first (or only) tarball that was attested. When a directory of tarballs is attested, every tarball is attested but this returns the first one for backward compatibility. Publish from the directory you passed in to cover all of them. |
 <!-- action-docs-outputs source="action.yml" -->
 
 ## Pack/Publish Compatibility Matrix
@@ -199,12 +197,13 @@ Use `npm pack` (or `package-manager: npm` in this action) and publish with `npm 
 1. **Resolves the tarball(s)**: accepts a `.tgz` file directly, a directory containing one or more `.tgz` files (**all** are attested), or a directory with `package.json` (packs it with the specified package manager when no `.tgz` files are present). If both `.tgz` files and `package.json` exist, existing `.tgz` files take precedence.
 2. **Validates each package**: extracts `package.json` from every tarball and verifies `repository.url` matches the current repository (npmjs.com requires this, or it returns an E422).
 3. **Computes integrity**: calculates `sha512` directly from each tarball's bytes (no re-packing).
-4. **Generates SLSA provenance**: builds one **single-subject** in-toto statement per package (subject = the npm purl + tarball digest) sharing a common build-provenance predicate.
-5. **Signs and uploads**: signs every statement with Sigstore (OIDC keyless) in a single pass and uploads each signed attestation to the GitHub Attestations API.
+4. **Builds the SLSA layout**: emits one **single-subject** entry per package (subject = the npm purl + tarball digest) into the standard SLSA outputs layout.
+5. **Builds the in-toto statements**: expands the layout + a shared build-provenance predicate into one in-toto statement per package.
+6. **Signs and uploads**: signs every statement with Sigstore (OIDC keyless) via the SLSA `sign-attestations` action in a single pass, then uploads each signed attestation to the GitHub Attestations API.
 
 ### Why not the SLSA `generate-attestations` action?
 
-The SLSA `generate-attestations` action caps a layout at **50 attestations** (`MAX_ATTESTATION_COUNT`), which fails for large monorepos (e.g. `SLSA outputs layout had too many attestations: 84`). To lift that ceiling, this action builds the in-toto statements itself and relies on the SLSA `sign-attestations` action (which has no such cap) to sign the whole folder at once. Each attestation stays single-subject, matching what npmjs.com expects per package.
+The action's pipeline is deliberately close to the SLSA reference flow (predicate → layout → statements → sign → upload). The one deviation is step 5: the SLSA `generate-attestations` action caps a single layout at **50 attestations** (`MAX_ATTESTATION_COUNT`), which fails for large monorepos (e.g. `SLSA outputs layout had too many attestations: 84`). We replace only that step with a small script (`build-intoto-statements.sh`) that performs the exact same layout → in-toto statement transformation with no cap. The SLSA `sign-attestations` action (which has no such cap) still signs the whole folder at once, and each attestation stays single-subject, matching what npmjs.com expects per package.
 
 ## Runs
 

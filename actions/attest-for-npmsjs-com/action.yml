@@ -11,14 +11,8 @@ inputs:
 
 outputs:
   tarball-path:
-    description: 'Absolute path to the first (or only) tarball that was attested. For multiple tarballs, prefer "tarball-paths".'
+    description: 'Absolute path to the first (or only) tarball that was attested. When a directory of tarballs is attested, every tarball is attested but this returns the first one for backward compatibility.'
     value: ${{ steps.package-details.outputs.TARBALL_PATH }}
-  tarball-paths:
-    description: 'Newline-separated absolute paths of all tarballs that were attested.'
-    value: ${{ steps.package-details.outputs.TARBALL_PATHS }}
-  package-count:
-    description: 'Number of tarballs that were attested.'
-    value: ${{ steps.package-details.outputs.PACKAGE_COUNT }}
 
 runs:
   using: "composite"
@@ -101,7 +95,7 @@ runs:
                 echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
                 exit 1
               fi
-              echo "::warning::When packing from a directory, ensure you use the 'tarball-paths' output to publish the exact same tarball(s) that were attested."
+              echo "::warning::When packing from a directory, ensure you publish the exact same tarball(s) that were attested."
 
             else
               echo "::error::No .tgz file or package.json found at: $SUBJECT_PATH"
@@ -115,13 +109,17 @@ runs:
 
           EXPECTED_REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
 
-          # Build a manifest describing every tarball to attest.
-          MANIFEST_FILE="$(pwd)/packages-manifest.json"
-          echo "[]" > "$MANIFEST_FILE"
-          TARBALL_PATHS=""
+          # Build the packages list consumed by the SLSA layout script: one entry
+          # per tarball with the metadata needed to build its in-toto subject.
+          PACKAGES_LIST_FILE="$(pwd)/packages_list.json"
+          echo "[]" > "$PACKAGES_LIST_FILE"
+          FIRST_TARBALL=""
 
           for TARBALL in "${TARBALLS[@]}"; do
             TARBALL_ABS=$(realpath "$TARBALL")
+            if [ -z "$FIRST_TARBALL" ]; then
+              FIRST_TARBALL="$TARBALL_ABS"
+            fi
 
             # Extract metadata directly from the tarball without re-packing
             if ! PACKAGE_JSON=$(tar xzf "$TARBALL_ABS" -O package/package.json 2>/dev/null); then
@@ -142,6 +140,8 @@ runs:
               exit 1
             fi
 
+            # npmjs.com provenance verification requires repository.url to match the
+            # building repository, otherwise publish fails with an E422.
             REPO_URL=$(jq -r '.repository.url // ""' <<<"$PACKAGE_JSON")
             if [ -z "$REPO_URL" ]; then
               echo "::error::package.json for \"${PACKAGE_NAME}\" is missing \"repository.url\". npmjs.com provenance verification requires it to match \"${EXPECTED_REPO_URL}\". Add to your package.json: \"repository\": { \"type\": \"git\", \"url\": \"${EXPECTED_REPO_URL}\" }"
@@ -167,31 +167,22 @@ runs:
 
             echo "Validated \"$PACKAGE_NAME\"@\"$PACKAGE_VERSION\" ($PACKAGE_FILENAME): repository.url matches expected provenance source."
 
-            TMP_MANIFEST=$(mktemp)
+            TMP_LIST=$(mktemp)
             jq -c \
               --arg name "$PACKAGE_NAME" \
               --arg version "$PACKAGE_VERSION" \
               --arg integrity "$PACKAGE_INTEGRITY" \
               --arg filename "$PACKAGE_FILENAME" \
-              --arg tarball "$TARBALL_ABS" \
-              '. + [{name: $name, version: $version, integrity: $integrity, filename: $filename, tarball: $tarball}]' \
-              "$MANIFEST_FILE" > "$TMP_MANIFEST"
-            mv "$TMP_MANIFEST" "$MANIFEST_FILE"
-
-            if [ -z "$TARBALL_PATHS" ]; then
-              TARBALL_PATHS="$TARBALL_ABS"
-            else
-              TARBALL_PATHS="${TARBALL_PATHS}"$'\n'"${TARBALL_ABS}"
-            fi
+              '. + [{name: $name, version: $version, integrity: $integrity, filename: $filename}]' \
+              "$PACKAGES_LIST_FILE" > "$TMP_LIST"
+            mv "$TMP_LIST" "$PACKAGES_LIST_FILE"
           done
 
-          PACKAGE_COUNT=$(jq 'length' "$MANIFEST_FILE")
+          PACKAGE_COUNT=$(jq 'length' "$PACKAGES_LIST_FILE")
           if [ "$PACKAGE_COUNT" -eq 0 ]; then
             echo "::error::No tarballs were resolved for attestation from: $SUBJECT_PATH"
             exit 1
           fi
-          FIRST_TARBALL=$(jq -r '.[0].tarball' "$MANIFEST_FILE")
-
           echo "Resolved ${PACKAGE_COUNT} package(s) to attest."
 
           EOF_MARKER=$(openssl rand -hex 16 2>/dev/null || python3 -c 'import uuid; print(uuid.uuid4().hex)' 2>/dev/null || echo "EOF_$(date +%s%N)_$$")
@@ -201,23 +192,16 @@ runs:
           fi
 
           {
-            echo "MANIFEST_FILE=${MANIFEST_FILE}"
-            echo "PACKAGE_COUNT=${PACKAGE_COUNT}"
+            echo "PACKAGES_LIST_FILE=${PACKAGES_LIST_FILE}"
             echo "TARBALL_PATH<<${EOF_MARKER}"
             echo "$FIRST_TARBALL"
-            echo "${EOF_MARKER}"
-            echo "TARBALL_PATHS<<${EOF_MARKER}"
-            echo "$TARBALL_PATHS"
             echo "${EOF_MARKER}"
           } >> "$GITHUB_OUTPUT"
       - name: Print all outputs of package details
         shell: bash
         run: |
-          echo "PACKAGE_COUNT=${{ steps.package-details.outputs.PACKAGE_COUNT }}"
+          echo "PACKAGES_LIST_FILE=${{ steps.package-details.outputs.PACKAGES_LIST_FILE }}"
           echo "TARBALL_PATH=${{ steps.package-details.outputs.TARBALL_PATH }}"
-          echo "TARBALL_PATHS<<EOF"
-          echo "${{ steps.package-details.outputs.TARBALL_PATHS }}"
-          echo "EOF"
       - name: Generate the Predicate
         shell: bash
         env:
@@ -241,10 +225,20 @@ runs:
           GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
           BUILD_INVOCATION_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: slsa-github-generator-nodejs-predicate.sh
-      - name: Build the in-toto statements
+      - name: Generate the SLSA layout
         shell: bash
         env:
-          MANIFEST_FILE: ${{ steps.package-details.outputs.MANIFEST_FILE }}
+          SLSA_OUTPUTS_ARTIFACTS_FILE: artifacts-layout.json
+          PACKAGES_LIST_FILE: ${{ steps.package-details.outputs.PACKAGES_LIST_FILE }}
+        run: slsa-github-generator-nodejs-layout.sh
+      - name: Build the in-toto statements from the SLSA layout
+        # This step replaces slsa-framework/.../generate-attestations, which caps a
+        # single layout at 50 attestations (MAX_ATTESTATION_COUNT) and therefore
+        # cannot serve large monorepos. It produces the exact same single-subject
+        # in-toto statements from the layout + predicate, with no such cap.
+        shell: bash
+        env:
+          SLSA_LAYOUT_FILE: artifacts-layout.json
           PREDICATE_FILE: predicate.json
           PREDICATE_TYPE: https://slsa.dev/provenance/v0.2
           OUTPUT_FOLDER: attestations
