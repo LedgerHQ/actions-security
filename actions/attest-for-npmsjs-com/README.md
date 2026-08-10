@@ -2,7 +2,7 @@
 
 <!-- action-docs-description source="action.yml" -->
 
-Attest one or many npm packages for npmjs.com distribution. Supports a single pre-packed tarball, a directory of tarballs (all attested), or a directory with a package.json to pack.
+Attest one or many pre-packed npm tarballs for npmjs.com distribution. Supports a single .tgz file or a directory of .tgz files (all of them are attested). You are responsible for packing your package(s) before calling this action.
 
 <!-- action-docs-description source="action.yml" -->
 
@@ -53,32 +53,7 @@ jobs:
       # Use ${{ steps.attest.outputs.tarball-path }} to reference the attested tarball
 ```
 
-#### Workflow B: Let the action pack
-
-The action packs from a directory containing `package.json`. Use the `tarball-path` output for subsequent publish steps.
-
-```yaml
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      attestations: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Attest for npmjs.com
-        id: attest
-        uses: LedgerHQ/actions-security/actions/attest-for-npmsjs-com@actions/attest-for-npmsjs-com-1
-        with:
-          subject-path: path/to/my/package
-          package-manager: pnpm
-
-      # Publish the tarball that was attested (not a separately packed one)
-      - run: npm publish "${{ steps.attest.outputs.tarball-path }}"
-```
-
-#### Workflow C: Monorepo (many packages at once)
+#### Workflow B: Monorepo (many packages at once)
 
 Point the action at a directory containing all your packed tarballs. **Every** `.tgz` in the directory is attested, each with its own single-subject attestation. This is the recommended shape for large monorepos: it is not affected by the SLSA generator's 50-attestation-per-layout limit, because the action produces the in-toto statements itself and signs them in a single pass.
 
@@ -113,8 +88,7 @@ jobs:
 
 | name | description | required | default |
 | --- | --- | --- | --- |
-| `subject-path` | Path to the npm package(s) to attest. Can be a `.tgz` file, a directory containing one or more `.tgz` files (**all** of them are attested), or a directory with a `package.json` to pack when no `.tgz` files are present. If both `.tgz` files and `package.json` exist, `.tgz` files take precedence. | `true` | `""` |
-| `package-manager` | Package manager to use for packing when `subject-path` is a directory with `package.json` and no `.tgz` files are present (`npm` or `pnpm`). Any other value fails. | `false` | `npm` |
+| `subject-path` | Path to the pre-packed npm package(s) to attest. Can be a `.tgz` file or a directory containing one or more `.tgz` files (**all** of them are attested). Packing is not performed by this action; run your own pack step (e.g. `npm pack` / `pnpm pack`) beforehand. | `true` | `""` |
 <!-- action-docs-inputs source="action.yml" -->
 
 <!-- action-docs-outputs source="action.yml" -->
@@ -179,14 +153,18 @@ Make sure your `package.json` `files` field does not include `.tgz` files, and t
 
 ### Recommendation
 
-Use `npm pack` (or `package-manager: npm` in this action) and publish with `npm publish <tarball>` or `pnpm publish <tarball>`:
+Pack with `npm pack`, attest the resulting tarball, and publish with `npm publish <tarball>` or `pnpm publish <tarball>`:
 
 ```yaml
+# Pack once yourself
+- run: npm pack --pack-destination .
+  working-directory: path/to/my/package
+
 - name: Attest for npmjs.com
   id: attest
   uses: LedgerHQ/actions-security/actions/attest-for-npmsjs-com@actions/attest-for-npmsjs-com-1
   with:
-    subject-path: path/to/my/package
+    subject-path: path/to/my/package/my-package-1.0.0.tgz # the tarball you just packed
 
 # Publish the exact attested tarball to JFrog
 - run: npm publish "${{ steps.attest.outputs.tarball-path }}"
@@ -194,7 +172,7 @@ Use `npm pack` (or `package-manager: npm` in this action) and publish with `npm 
 
 ## How It Works
 
-1. **Resolves the tarball(s)**: accepts a `.tgz` file directly, a directory containing one or more `.tgz` files (**all** are attested), or a directory with `package.json` (packs it with the specified package manager when no `.tgz` files are present). If both `.tgz` files and `package.json` exist, existing `.tgz` files take precedence.
+1. **Resolves the tarball(s)**: accepts a pre-packed `.tgz` file directly, or a directory containing one or more pre-packed `.tgz` files (**all** are attested). This action never packs; you pack your package(s) yourself so you keep full control over the exact bytes that get attested and published.
 2. **Validates each package**: extracts `package.json` from every tarball and verifies `repository.url` matches the current repository (npmjs.com requires this, or it returns an E422).
 3. **Computes integrity**: calculates `sha512` directly from each tarball's bytes (no re-packing).
 4. **Builds the SLSA layout**: emits one **single-subject** entry per package (subject = the npm purl + tarball digest) into the standard SLSA outputs layout.

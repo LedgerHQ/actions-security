@@ -1,13 +1,9 @@
 name: "[Ledger Security] Attest an npm package for npmjs.com distribution"
-description: "Attest one or many npm packages for npmjs.com distribution. Supports a single pre-packed tarball, a directory of tarballs (all attested), or a directory with a package.json to pack."
+description: "Attest one or many pre-packed npm tarballs for npmjs.com distribution. Supports a single .tgz file or a directory of .tgz files (all of them are attested). You are responsible for packing your package(s) before calling this action."
 inputs:
   subject-path:
-    description: 'Path to the npm package(s) to attest. Can be a .tgz file, a directory containing one or more .tgz files (all of them are attested), or a directory with a package.json to pack when no .tgz files are present.'
+    description: 'Path to the pre-packed npm package(s) to attest. Can be a .tgz file or a directory containing one or more .tgz files (all of them are attested). Packing is not performed by this action; run your own pack step (e.g. `npm pack` / `pnpm pack`) beforehand.'
     required: true
-  package-manager:
-    description: 'Package manager to use for packing when subject-path is a directory with package.json and no .tgz files are present (npm or pnpm). Defaults to npm.'
-    required: false
-    default: 'npm'
 
 outputs:
   tarball-path:
@@ -42,14 +38,8 @@ runs:
         shell: bash
         env:
           SUBJECT_PATH: ${{ inputs.subject-path }}
-          PACK_MANAGER: ${{ inputs.package-manager }}
         run: |
           set -euo pipefail
-
-          if [ "$PACK_MANAGER" != "npm" ] && [ "$PACK_MANAGER" != "pnpm" ]; then
-            echo "::error::Unsupported package manager: $PACK_MANAGER. Use 'npm' or 'pnpm'."
-            exit 1
-          fi
 
           if [ ! -e "$SUBJECT_PATH" ]; then
             echo "::error::Provided subject-path does not exist: $SUBJECT_PATH"
@@ -69,8 +59,9 @@ runs:
             shopt -u nullglob
           }
 
-          # Resolve the tarball(s) based on what was provided.
-          # For directory inputs, existing .tgz files take precedence over packing from package.json.
+          # Resolve the pre-packed tarball(s). This action never packs: callers must
+          # run their own pack step so they retain full control over the artifact
+          # that gets attested (and later published).
           if [ -f "$SUBJECT_ABS" ] && [[ "$SUBJECT_ABS" == *.tgz ]]; then
             echo "Using existing tarball: $SUBJECT_ABS"
             TARBALLS=("$SUBJECT_ABS")
@@ -78,32 +69,14 @@ runs:
           elif [ -d "$SUBJECT_ABS" ]; then
             collect_tgz "$SUBJECT_ABS"
 
-            if [ "${#TARBALLS[@]}" -gt 0 ]; then
-              if [ -f "$SUBJECT_ABS/package.json" ]; then
-                echo "::warning::Both .tgz files and package.json were found in $SUBJECT_ABS. Using existing .tgz tarball(s)."
-              fi
-              echo "Found ${#TARBALLS[@]} tarball(s) in directory: $SUBJECT_ABS"
-
-            elif [ -f "$SUBJECT_ABS/package.json" ]; then
-              echo "Found package.json in $SUBJECT_ABS, packing with $PACK_MANAGER..."
-              if ! (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack); then
-                echo "::error::$PACK_MANAGER pack failed in $SUBJECT_ABS"
-                exit 1
-              fi
-              collect_tgz "$SUBJECT_ABS"
-              if [ "${#TARBALLS[@]}" -eq 0 ]; then
-                echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
-                exit 1
-              fi
-              echo "::warning::When packing from a directory, ensure you publish the exact same tarball(s) that were attested."
-
-            else
-              echo "::error::No .tgz file or package.json found at: $SUBJECT_PATH"
+            if [ "${#TARBALLS[@]}" -eq 0 ]; then
+              echo "::error::No .tgz file found in directory: $SUBJECT_PATH. Pack your package(s) first (e.g. \`npm pack\` / \`pnpm pack\`) so the directory contains one or more .tgz files."
               exit 1
             fi
+            echo "Found ${#TARBALLS[@]} tarball(s) in directory: $SUBJECT_ABS"
 
           else
-            echo "::error::subject-path must point to a .tgz file, a directory containing .tgz files, or a directory with package.json: $SUBJECT_PATH"
+            echo "::error::subject-path must point to a .tgz file or a directory containing .tgz files: $SUBJECT_PATH. Packing is not performed by this action."
             exit 1
           fi
 
@@ -199,9 +172,12 @@ runs:
           } >> "$GITHUB_OUTPUT"
       - name: Print all outputs of package details
         shell: bash
+        env:
+          PACKAGES_LIST_FILE: ${{ steps.package-details.outputs.PACKAGES_LIST_FILE }}
+          TARBALL_PATH: ${{ steps.package-details.outputs.TARBALL_PATH }}
         run: |
-          echo "PACKAGES_LIST_FILE=${{ steps.package-details.outputs.PACKAGES_LIST_FILE }}"
-          echo "TARBALL_PATH=${{ steps.package-details.outputs.TARBALL_PATH }}"
+          echo "PACKAGES_LIST_FILE=${PACKAGES_LIST_FILE}"
+          echo "TARBALL_PATH=${TARBALL_PATH}"
       - name: Generate the Predicate
         shell: bash
         env:
@@ -244,13 +220,13 @@ runs:
           OUTPUT_FOLDER: attestations
         run: build-intoto-statements.sh
       - name: Sign the attestations
-        uses: slsa-framework/slsa-github-generator/.github/actions/sign-attestations@v2.0.0
+        uses: slsa-framework/slsa-github-generator/.github/actions/sign-attestations@5a775b367a56d5bd118a224a811bba288150a563 # v2.0.0
         with:
           payload-type: application/vnd.in-toto+json
           attestations: attestations
           output-folder: attestations-signed
       - name: Upload the signed attestations to the GitHub API
-        uses: actions/github-script@v6
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         env:
           ATTESTATIONS_DIR: attestations-signed
           GITHUB_REPOSITORY: ${{ github.repository }}
