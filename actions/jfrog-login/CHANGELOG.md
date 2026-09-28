@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.1](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.4.0...actions/jfrog-login-1.4.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **jfrog-login:** domain is empty due to using the wrong output ([#83](https://github.com/LedgerHQ/actions-security/issues/83)) ([7304043](https://github.com/LedgerHQ/actions-security/commit/7304043cc7b16394ab54ff9eb1bdba151d6d915f))
+* **jfrog-login:** vars and typos ([#82](https://github.com/LedgerHQ/actions-security/issues/82)) ([201cc75](https://github.com/LedgerHQ/actions-security/commit/201cc75faf57e2fca303c757f0dc8cbb8433db57))
+* **jfrog:** update `jfrog/setup-jfrog-cli` to `v5` ([#105](https://github.com/LedgerHQ/actions-security/issues/105)) ([7de4f1e](https://github.com/LedgerHQ/actions-security/commit/7de4f1e8fda32651e77734db8b65fca5bdda90e6))
+
 ## [1.4.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.3.0...actions/jfrog-login-1.4.0) (2025-02-24)
 
 
