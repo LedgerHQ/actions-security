@@ -36,6 +36,10 @@ inputs:
     description: "pnpm option to automatically install peer dependencies"
     required: false
     default: "false"
+  package-import-method:
+    description: "pnpm option to control how packages are imported from the store (auto, hardlink, clone, clone-or-copy, copy). Not set when `false`."
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -96,4 +100,14 @@ runs:
       run: |
         cat << EOF | tee -a "${{inputs.npmrc-location}}"
         auto-install-peers=${INPUTS_AUTO_INSTALL_PEERS}
+        EOF
+
+    - name: Set package import method
+      shell: bash
+      env:
+        INPUTS_PACKAGE_IMPORT_METHOD: ${{inputs.package-import-method}}
+      if: inputs.package-import-method != 'false'
+      run: |
+        cat << EOF | tee -a "${{inputs.npmrc-location}}"
+        package-import-method=${INPUTS_PACKAGE_IMPORT_METHOD}
         EOF

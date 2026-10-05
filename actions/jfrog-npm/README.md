@@ -63,6 +63,7 @@ defined in jfrog.
 | omit                | `false`  | false    | Disable the installation of certain types of packages. e.g.: `dev` will not install devDependencies. |
 | minimum-release-age | `false`  | false    | Require packages to be older than the provided value in minutes.                                     |
 | auto-install-peers  | false    | false    | pnpm option to automatically install peer dependencies                                               |
+| package-import-method | `false` | false    | pnpm option to set how packages are imported from the store (`auto`, `hardlink`, `clone`, `clone-or-copy`, `copy`). |
 
 <!-- markdownlint-enable MD013 -->
 <!-- action-docs-inputs source="action.yml" -->
