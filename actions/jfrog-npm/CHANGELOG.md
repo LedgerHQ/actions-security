@@ -3,14 +3,9 @@
 ## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-npm-0.3.0...actions/jfrog-npm-1.0.0) (2026-10-07)
 
 
-### ⚠ BREAKING CHANGES
-
-* **wiz-cli:** input iac_path renamed to dir_path, policy_iac renamed to policy_dir
-
 ### Features
 
 * **jfrog-npm:** add package-import-method input ([#106](https://github.com/LedgerHQ/actions-security/issues/106)) ([c927e3b](https://github.com/LedgerHQ/actions-security/commit/c927e3b6f81f35f3f11f54ff8df47b410186e7a3))
-* **wiz-cli:** upgrade to Wiz CLI v1 ([#87](https://github.com/LedgerHQ/actions-security/issues/87)) ([34e49a6](https://github.com/LedgerHQ/actions-security/commit/34e49a637086820c7e0b2936e02c57e10cd3323f))
 
 ## [0.3.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-npm-0.2.0...actions/jfrog-npm-0.3.0) (2025-11-12)
 
