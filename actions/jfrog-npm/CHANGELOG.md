@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-npm-0.3.0...actions/jfrog-npm-1.0.0) (2026-10-07)
+
+
+### Features
+
+* **jfrog-npm:** add package-import-method input ([#106](https://github.com/LedgerHQ/actions-security/issues/106)) ([c927e3b](https://github.com/LedgerHQ/actions-security/commit/c927e3b6f81f35f3f11f54ff8df47b410186e7a3))
+
 ## [0.3.0](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-npm-0.2.0...actions/jfrog-npm-0.3.0) (2025-11-12)
 
 
