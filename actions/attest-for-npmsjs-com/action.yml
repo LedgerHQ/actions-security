@@ -1,17 +1,13 @@
 name: "[Ledger Security] Attest an npm package for npmjs.com distribution"
-description: "Attest an npm package for npmjs.com distribution. Supports pre-packed tarballs or directories with package.json."
+description: "Attest one or many pre-packed npm tarballs for npmjs.com distribution. Supports a single .tgz file or a directory of .tgz files (all of them are attested). You are responsible for packing your package(s) before calling this action."
 inputs:
   subject-path:
-    description: 'Path to the npm package to attest. Can be a .tgz file, a directory containing .tgz files (most recent selected), or a directory with a package.json to pack when no .tgz files are present.'
+    description: 'Path to the pre-packed npm package(s) to attest. Can be a .tgz file or a directory containing one or more .tgz files (all of them are attested). Packing is not performed by this action; run your own pack step (e.g. `npm pack` / `pnpm pack`) beforehand.'
     required: true
-  package-manager:
-    description: 'Package manager to use for packing when subject-path is a directory with package.json and no .tgz files are present (npm or pnpm). Defaults to npm.'
-    required: false
-    default: 'npm'
 
 outputs:
   tarball-path:
-    description: 'Absolute path to the tarball that was attested.'
+    description: 'Absolute path to the first (or only) tarball that was attested. When a directory of tarballs is attested, every tarball is attested but this returns the first one for backward compatibility.'
     value: ${{ steps.package-details.outputs.TARBALL_PATH }}
 
 runs:
@@ -42,14 +38,8 @@ runs:
         shell: bash
         env:
           SUBJECT_PATH: ${{ inputs.subject-path }}
-          PACK_MANAGER: ${{ inputs.package-manager }}
         run: |
           set -euo pipefail
-
-          if [ "$PACK_MANAGER" != "npm" ] && [ "$PACK_MANAGER" != "pnpm" ]; then
-            echo "::error::Unsupported package manager: $PACK_MANAGER. Use 'npm' or 'pnpm'."
-            exit 1
-          fi
 
           if [ ! -e "$SUBJECT_PATH" ]; then
             echo "::error::Provided subject-path does not exist: $SUBJECT_PATH"
@@ -58,136 +48,115 @@ runs:
 
           # Resolve subject-path to absolute for consistent behavior
           SUBJECT_ABS=$(realpath "$SUBJECT_PATH")
-          SELECT_NEWEST_TGZ_PATH=""
-          SELECT_NEWEST_TGZ_WARNING=""
 
-          select_newest_tgz() {
+          # List of tarballs to attest (populated below).
+          declare -a TARBALLS=()
+
+          collect_tgz() {
             local search_dir="$1"
-            local -a tgz_files=()
-            local newest_file
-            local file
-
             shopt -s nullglob
-            tgz_files=("$search_dir"/*.tgz)
+            TARBALLS=("$search_dir"/*.tgz)
             shopt -u nullglob
-
-            if [ "${#tgz_files[@]}" -eq 0 ]; then
-              SELECT_NEWEST_TGZ_PATH=""
-              SELECT_NEWEST_TGZ_WARNING=""
-              return 1
-            fi
-
-            newest_file="${tgz_files[0]}"
-            for file in "${tgz_files[@]:1}"; do
-              if [ "$file" -nt "$newest_file" ]; then
-                newest_file="$file"
-              fi
-            done
-
-            if [ "${#tgz_files[@]}" -gt 1 ]; then
-              SELECT_NEWEST_TGZ_WARNING="::warning::Multiple .tgz files found in $search_dir. Using the most recently modified tarball: $(basename "$newest_file")."
-            else
-              SELECT_NEWEST_TGZ_WARNING=""
-            fi
-
-            SELECT_NEWEST_TGZ_PATH="$newest_file"
           }
 
-          # Resolve the tarball path based on what was provided.
-          # For directory inputs, existing .tgz files take precedence over packing from package.json.
+          # Resolve the pre-packed tarball(s). This action never packs: callers must
+          # run their own pack step so they retain full control over the artifact
+          # that gets attested (and later published).
           if [ -f "$SUBJECT_ABS" ] && [[ "$SUBJECT_ABS" == *.tgz ]]; then
             echo "Using existing tarball: $SUBJECT_ABS"
-            PACKAGE_TARBALL="$SUBJECT_ABS"
+            TARBALLS=("$SUBJECT_ABS")
 
           elif [ -d "$SUBJECT_ABS" ]; then
-            if select_newest_tgz "$SUBJECT_ABS"; then
-              PACKAGE_TARBALL="$SELECT_NEWEST_TGZ_PATH"
-              if [ -n "$SELECT_NEWEST_TGZ_WARNING" ]; then
-                echo "$SELECT_NEWEST_TGZ_WARNING"
-              fi
-              if [ -f "$SUBJECT_ABS/package.json" ]; then
-                echo "::warning::Both .tgz files and package.json were found in $SUBJECT_ABS. Using existing .tgz tarball."
-              fi
-              echo "Found tarball in directory: $PACKAGE_TARBALL"
+            collect_tgz "$SUBJECT_ABS"
 
-            elif [ -f "$SUBJECT_ABS/package.json" ]; then
-              echo "Found package.json in $SUBJECT_ABS, packing with $PACK_MANAGER..."
-              if ! (cd "$SUBJECT_ABS" && "$PACK_MANAGER" pack); then
-                echo "::error::$PACK_MANAGER pack failed in $SUBJECT_ABS"
-                exit 1
-              fi
-              if ! select_newest_tgz "$SUBJECT_ABS"; then
-                echo "::error::$PACK_MANAGER pack succeeded but no .tgz file was found in $SUBJECT_ABS"
-                exit 1
-              fi
-              PACKAGE_TARBALL="$SELECT_NEWEST_TGZ_PATH"
-              if [ -n "$SELECT_NEWEST_TGZ_WARNING" ]; then
-                echo "$SELECT_NEWEST_TGZ_WARNING"
-              fi
-              echo "Packed tarball: $PACKAGE_TARBALL"
-              echo "::warning::When packing from a directory, ensure you use the 'tarball-path' output to publish the exact same tarball that was attested."
-
-            else
-              echo "::error::No .tgz file or package.json found at: $SUBJECT_PATH"
+            if [ "${#TARBALLS[@]}" -eq 0 ]; then
+              echo "::error::No .tgz file found in directory: $SUBJECT_PATH. Pack your package(s) first (e.g. \`npm pack\` / \`pnpm pack\`) so the directory contains one or more .tgz files."
               exit 1
             fi
+            echo "Found ${#TARBALLS[@]} tarball(s) in directory: $SUBJECT_ABS"
 
           else
-            echo "::error::subject-path must point to a .tgz file, a directory containing .tgz files, or a directory with package.json: $SUBJECT_PATH"
-            exit 1
-          fi
-
-          # Extract metadata directly from the tarball without re-packing
-          if ! PACKAGE_JSON=$(tar xzf "$PACKAGE_TARBALL" -O package/package.json 2>/dev/null); then
-            echo "::error::Failed to extract package/package.json from tarball: $PACKAGE_TARBALL"
-            exit 1
-          fi
-          if [ -z "$PACKAGE_JSON" ]; then
-            echo "::error::package/package.json was not found or is empty in tarball: $PACKAGE_TARBALL"
-            exit 1
-          fi
-
-          if ! PACKAGE_NAME=$(jq -er '.name' <<<"$PACKAGE_JSON"); then
-            echo "::error::Failed to parse package name from package/package.json in tarball: $PACKAGE_TARBALL"
-            exit 1
-          fi
-          if ! PACKAGE_VERSION=$(jq -er '.version' <<<"$PACKAGE_JSON"); then
-            echo "::error::Failed to parse package version from package/package.json in tarball: $PACKAGE_TARBALL"
+            echo "::error::subject-path must point to a .tgz file or a directory containing .tgz files: $SUBJECT_PATH. Packing is not performed by this action."
             exit 1
           fi
 
           EXPECTED_REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
 
-          REPO_URL=$(jq -r '.repository.url // ""' <<<"$PACKAGE_JSON")
+          # Build the packages list consumed by the SLSA layout script: one entry
+          # per tarball with the metadata needed to build its in-toto subject.
+          PACKAGES_LIST_FILE="$(pwd)/packages_list.json"
+          echo "[]" > "$PACKAGES_LIST_FILE"
+          FIRST_TARBALL=""
 
-          if [ -z "$REPO_URL" ]; then
-            echo "::error::package.json is missing \"repository.url\". npmjs.com provenance verification requires it to match \"${EXPECTED_REPO_URL}\". Add to your package.json: \"repository\": { \"type\": \"git\", \"url\": \"${EXPECTED_REPO_URL}\" }"
+          for TARBALL in "${TARBALLS[@]}"; do
+            TARBALL_ABS=$(realpath "$TARBALL")
+            if [ -z "$FIRST_TARBALL" ]; then
+              FIRST_TARBALL="$TARBALL_ABS"
+            fi
+
+            # Extract metadata directly from the tarball without re-packing
+            if ! PACKAGE_JSON=$(tar xzf "$TARBALL_ABS" -O package/package.json 2>/dev/null); then
+              echo "::error::Failed to extract package/package.json from tarball: $TARBALL_ABS"
+              exit 1
+            fi
+            if [ -z "$PACKAGE_JSON" ]; then
+              echo "::error::package/package.json was not found or is empty in tarball: $TARBALL_ABS"
+              exit 1
+            fi
+
+            if ! PACKAGE_NAME=$(jq -er '.name' <<<"$PACKAGE_JSON"); then
+              echo "::error::Failed to parse package name from package/package.json in tarball: $TARBALL_ABS"
+              exit 1
+            fi
+            if ! PACKAGE_VERSION=$(jq -er '.version' <<<"$PACKAGE_JSON"); then
+              echo "::error::Failed to parse package version from package/package.json in tarball: $TARBALL_ABS"
+              exit 1
+            fi
+
+            # npmjs.com provenance verification requires repository.url to match the
+            # building repository, otherwise publish fails with an E422.
+            REPO_URL=$(jq -r '.repository.url // ""' <<<"$PACKAGE_JSON")
+            if [ -z "$REPO_URL" ]; then
+              echo "::error::package.json for \"${PACKAGE_NAME}\" is missing \"repository.url\". npmjs.com provenance verification requires it to match \"${EXPECTED_REPO_URL}\". Add to your package.json: \"repository\": { \"type\": \"git\", \"url\": \"${EXPECTED_REPO_URL}\" }"
+              exit 1
+            fi
+
+            NORMALIZED_REPO_URL=$(echo "$REPO_URL" | sed -E 's|^git\+||; s|\.git$||')
+            if [ "$NORMALIZED_REPO_URL" != "$EXPECTED_REPO_URL" ]; then
+              echo "::error::package.json \"repository.url\" for \"${PACKAGE_NAME}\" is \"${REPO_URL}\" (normalized: \"${NORMALIZED_REPO_URL}\"), expected \"${EXPECTED_REPO_URL}\". This mismatch will cause an E422 from npmjs.com."
+              exit 1
+            fi
+
+            PACKAGE_FILENAME=$(basename "$TARBALL_ABS")
+            if ! PACKAGE_SHA512=$(openssl dgst -sha512 -binary "$TARBALL_ABS" | base64 | tr -d '\n'); then
+              echo "::error::Failed to compute sha512 for tarball: $TARBALL_ABS"
+              exit 1
+            fi
+            if [ -z "$PACKAGE_SHA512" ]; then
+              echo "::error::Computed empty sha512 for tarball: $TARBALL_ABS"
+              exit 1
+            fi
+            PACKAGE_INTEGRITY="sha512-${PACKAGE_SHA512}"
+
+            echo "Validated \"$PACKAGE_NAME\"@\"$PACKAGE_VERSION\" ($PACKAGE_FILENAME): repository.url matches expected provenance source."
+
+            TMP_LIST=$(mktemp)
+            jq -c \
+              --arg name "$PACKAGE_NAME" \
+              --arg version "$PACKAGE_VERSION" \
+              --arg integrity "$PACKAGE_INTEGRITY" \
+              --arg filename "$PACKAGE_FILENAME" \
+              '. + [{name: $name, version: $version, integrity: $integrity, filename: $filename}]' \
+              "$PACKAGES_LIST_FILE" > "$TMP_LIST"
+            mv "$TMP_LIST" "$PACKAGES_LIST_FILE"
+          done
+
+          PACKAGE_COUNT=$(jq 'length' "$PACKAGES_LIST_FILE")
+          if [ "$PACKAGE_COUNT" -eq 0 ]; then
+            echo "::error::No tarballs were resolved for attestation from: $SUBJECT_PATH"
             exit 1
           fi
-
-          NORMALIZED_REPO_URL=$(echo "$REPO_URL" | sed -E 's|^git\+||; s|\.git$||')
-
-          if [ "$NORMALIZED_REPO_URL" != "$EXPECTED_REPO_URL" ]; then
-            echo "::error::package.json \"repository.url\" is \"${REPO_URL}\" (normalized: \"${NORMALIZED_REPO_URL}\"), expected \"${EXPECTED_REPO_URL}\". This mismatch will cause an E422 from npmjs.com."
-            exit 1
-          fi
-
-          echo "Validated: repository.url matches expected provenance source."
-
-          PACKAGE_FILENAME=$(basename "$PACKAGE_TARBALL")
-          if ! PACKAGE_SHA512=$(openssl dgst -sha512 -binary "$PACKAGE_TARBALL" | base64 | tr -d '\n'); then
-            echo "::error::Failed to compute sha512 for tarball: $PACKAGE_TARBALL"
-            exit 1
-          fi
-          if [ -z "$PACKAGE_SHA512" ]; then
-            echo "::error::Computed empty sha512 for tarball: $PACKAGE_TARBALL"
-            exit 1
-          fi
-          PACKAGE_INTEGRITY="sha512-${PACKAGE_SHA512}"
-
-          echo "Package: \"$PACKAGE_NAME\"@\"$PACKAGE_VERSION\""
-          echo "Filename: \"$PACKAGE_FILENAME\""
-          echo "Integrity: \"$PACKAGE_INTEGRITY\""
+          echo "Resolved ${PACKAGE_COUNT} package(s) to attest."
 
           EOF_MARKER=$(openssl rand -hex 16 2>/dev/null || python3 -c 'import uuid; print(uuid.uuid4().hex)' 2>/dev/null || echo "EOF_$(date +%s%N)_$$")
           if [ -z "$EOF_MARKER" ]; then
@@ -195,32 +164,20 @@ runs:
             exit 1
           fi
 
-          TARBALL_ABS=$(realpath "$PACKAGE_TARBALL")
           {
+            echo "PACKAGES_LIST_FILE=${PACKAGES_LIST_FILE}"
             echo "TARBALL_PATH<<${EOF_MARKER}"
-            echo "$TARBALL_ABS"
-            echo "${EOF_MARKER}"
-            echo "PACKAGE_FILENAME<<${EOF_MARKER}"
-            echo "$PACKAGE_FILENAME"
-            echo "${EOF_MARKER}"
-            echo "PACKAGE_NAME<<${EOF_MARKER}"
-            echo "$PACKAGE_NAME"
-            echo "${EOF_MARKER}"
-            echo "PACKAGE_VERSION<<${EOF_MARKER}"
-            echo "$PACKAGE_VERSION"
-            echo "${EOF_MARKER}"
-            echo "PACKAGE_INTEGRITY<<${EOF_MARKER}"
-            echo "$PACKAGE_INTEGRITY"
+            echo "$FIRST_TARBALL"
             echo "${EOF_MARKER}"
           } >> "$GITHUB_OUTPUT"
       - name: Print all outputs of package details
         shell: bash
+        env:
+          PACKAGES_LIST_FILE: ${{ steps.package-details.outputs.PACKAGES_LIST_FILE }}
+          TARBALL_PATH: ${{ steps.package-details.outputs.TARBALL_PATH }}
         run: |
-          echo "TARBALL_PATH=${{ steps.package-details.outputs.TARBALL_PATH }}"
-          echo "PACKAGE_FILENAME=${{ steps.package-details.outputs.PACKAGE_FILENAME }}"
-          echo "PACKAGE_NAME=${{ steps.package-details.outputs.PACKAGE_NAME }}"
-          echo "PACKAGE_VERSION=${{ steps.package-details.outputs.PACKAGE_VERSION }}"
-          echo "PACKAGE_INTEGRITY=${{ steps.package-details.outputs.PACKAGE_INTEGRITY }}"
+          echo "PACKAGES_LIST_FILE=${PACKAGES_LIST_FILE}"
+          echo "TARBALL_PATH=${TARBALL_PATH}"
       - name: Generate the Predicate
         shell: bash
         env:
@@ -248,73 +205,70 @@ runs:
         shell: bash
         env:
           SLSA_OUTPUTS_ARTIFACTS_FILE: artifacts-layout.json
-          PACKAGE_NAME: ${{ steps.package-details.outputs.PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ steps.package-details.outputs.PACKAGE_VERSION }}
-          PACKAGE_INTEGRITY: ${{ steps.package-details.outputs.PACKAGE_INTEGRITY }}
-          PACKAGE_FILENAME: ${{ steps.package-details.outputs.PACKAGE_FILENAME }}
+          PACKAGES_LIST_FILE: ${{ steps.package-details.outputs.PACKAGES_LIST_FILE }}
         run: slsa-github-generator-nodejs-layout.sh
-      - name: Generate the attestation
-        uses: slsa-framework/slsa-github-generator/.github/actions/generate-attestations@v2.0.0
-        with:
-          slsa-layout-file: artifacts-layout.json
-          predicate-type: https://slsa.dev/provenance/v0.2
-          predicate-file: predicate.json
-          output-folder: attestations
-      - name: Sign the attestation
-        uses: slsa-framework/slsa-github-generator/.github/actions/sign-attestations@v2.0.0
+      - name: Build the in-toto statements from the SLSA layout
+        # This step replaces slsa-framework/.../generate-attestations, which caps a
+        # single layout at 50 attestations (MAX_ATTESTATION_COUNT) and therefore
+        # cannot serve large monorepos. It produces the exact same single-subject
+        # in-toto statements from the layout + predicate, with no such cap.
+        shell: bash
+        env:
+          SLSA_LAYOUT_FILE: artifacts-layout.json
+          PREDICATE_FILE: predicate.json
+          PREDICATE_TYPE: https://slsa.dev/provenance/v0.2
+          OUTPUT_FOLDER: attestations
+        run: build-intoto-statements.sh
+      - name: Sign the attestations
+        uses: slsa-framework/slsa-github-generator/.github/actions/sign-attestations@5a775b367a56d5bd118a224a811bba288150a563 # v2.0.0
         with:
           payload-type: application/vnd.in-toto+json
           attestations: attestations
-          output-folder: attestations-signed 
-      - name: Scan to find the attestation signed from the signed folder
-        shell: bash
-        id: scan-attestations-signed
-        run: |
-          set -euo pipefail
-
-          shopt -s nullglob
-          attestation_files=(./attestations-signed/*.build.slsa)
-          shopt -u nullglob
-
-          if [ "${#attestation_files[@]}" -eq 0 ]; then
-            echo "::error::No signed attestation files found in ./attestations-signed."
-            exit 1
-          fi
-
-          if [ "${#attestation_files[@]}" -gt 1 ]; then
-            echo "::error::Expected exactly one signed attestation but found ${#attestation_files[@]}: ${attestation_files[*]}"
-            exit 1
-          fi
-
-          ATTESTATION_SIGNED_PATH="${attestation_files[0]}"
-
-          echo "ATTESTATION_SIGNED_PATH=${ATTESTATION_SIGNED_PATH}" >> "$GITHUB_OUTPUT"
-      - name: Upload Attestation to the Github API
-        uses: actions/github-script@v6
+          output-folder: attestations-signed
+      - name: Upload the signed attestations to the GitHub API
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         env:
-          ATTESTATION_PATH: ${{ steps.scan-attestations-signed.outputs.ATTESTATION_SIGNED_PATH }}
+          ATTESTATIONS_DIR: attestations-signed
           GITHUB_REPOSITORY: ${{ github.repository }}
         with:
           script: |
             const fs = require('fs');
-            const attestationPath = process.env.ATTESTATION_PATH;
-            const attestationContent = fs.readFileSync(attestationPath, 'utf8');
-            const attestation = JSON.parse(attestationContent);
+            const path = require('path');
+
+            const attestationsDir = process.env.ATTESTATIONS_DIR;
             const [owner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
 
-            const response = await github.request('POST /repos/{owner}/{repo}/attestations', {
-              owner: owner,
-              repo: repoName,
-              headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-              },
-              data: {
-                bundle: attestation
-              }
-            });
+            const files = fs
+              .readdirSync(attestationsDir)
+              .filter((f) => f.endsWith('.build.slsa'))
+              .sort();
 
-            if (response.status !== 201) {
-              throw new Error(`Failed to upload attestation to GitHub API. HTTP status code: ${response.status}`);
+            if (files.length === 0) {
+              throw new Error(`No signed attestation files found in ./${attestationsDir}.`);
             }
 
-            console.log('Attestation uploaded successfully:', response.data);
+            let uploaded = 0;
+            for (const file of files) {
+              const attestationPath = path.join(attestationsDir, file);
+              const attestation = JSON.parse(fs.readFileSync(attestationPath, 'utf8'));
+
+              const response = await github.request('POST /repos/{owner}/{repo}/attestations', {
+                owner: owner,
+                repo: repoName,
+                headers: {
+                  'X-GitHub-Api-Version': '2022-11-28'
+                },
+                data: {
+                  bundle: attestation
+                }
+              });
+
+              if (response.status !== 201) {
+                throw new Error(`Failed to upload attestation ${file} to GitHub API. HTTP status code: ${response.status}`);
+              }
+
+              uploaded += 1;
+              console.log(`Uploaded attestation ${file} (id: ${response.data && response.data.id}).`);
+            }
+
+            console.log(`Uploaded ${uploaded} attestation(s) successfully.`);
