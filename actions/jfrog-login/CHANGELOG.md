@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.4.1...actions/jfrog-login-1.4.2) (2026-11-03)
+
+
+### Bug Fixes
+
+* **jfrog-login:** pin jfrog/setup-jfrog-cli to commit SHA (v5.3.4) ([#108](https://github.com/LedgerHQ/actions-security/issues/108)) ([04926f9](https://github.com/LedgerHQ/actions-security/commit/04926f9af82686960caeaf1ae94f5229fa49bb25))
+
 ## [1.4.1](https://github.com/LedgerHQ/actions-security/compare/actions/jfrog-login-1.4.0...actions/jfrog-login-1.4.1) (2026-09-28)
 
 
