@@ -39,7 +39,7 @@ runs:
         exit 1
       fi
     shell: bash
-  - uses: jfrog/setup-jfrog-cli@v5
+  - uses: jfrog/setup-jfrog-cli@ae385c7164244e984cd20a58674e5b57f53596d7 # v5.3.4
     id: setup-jfrog-cli
     env:
       JF_URL: ${{ inputs.jfrog-url }}
